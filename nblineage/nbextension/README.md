@@ -1,4 +1,4 @@
-nblineage extension for Literate Computing
+Lineage extension for Literate Computing
 =========
 
 This extension generates meme metadata for tracking lineage of a notebook when it is saved.

@@ -1,5 +1,5 @@
 Type: Jupyter Notebook Extension
-Name: Lineage
+Name: LC Lineage
 Section: notebook
 Description: "This extension track notebook's lineage."
 Link: README.md
