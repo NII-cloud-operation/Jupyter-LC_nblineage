@@ -8,7 +8,12 @@ from notebook.nbextensions import (InstallNBExtensionApp, EnableNBExtensionApp,
     DisableNBExtensionApp, flags, aliases)
 
 from jupyter_core.application import JupyterApp
-from notebook.nbextensions import BaseNBExtensionApp
+try:
+    from notebook.extensions import BaseExtensionApp
+except ImportError:
+    from notebook.nbextensions import BaseNBExtensionApp
+    BaseExtensionApp = BaseNBExtensionApp
+
 from notebook import nbextensions
 from notebook import serverextensions
 
@@ -19,7 +24,7 @@ from traitlets import Unicode
 import nbformat
 import meme
 
-class ExtensionQuickSetupApp(BaseNBExtensionApp):
+class ExtensionQuickSetupApp(BaseExtensionApp):
     """Installs and enables all parts of this extension"""
     name = "jupyter nblineage quick-setup"
     version = __version__
@@ -38,7 +43,7 @@ class ExtensionQuickSetupApp(BaseNBExtensionApp):
         enable.initialize(self.argv)
         enable.start()
 
-class ExtensionQuickRemovalApp(BaseNBExtensionApp):
+class ExtensionQuickRemovalApp(BaseExtensionApp):
     """Disables and uninstalls all parts of this extension"""
     name = "jupyter nblineage quick-remove"
     version = __version__

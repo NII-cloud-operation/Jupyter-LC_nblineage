@@ -19,7 +19,7 @@ setup_args = dict (name='lc-nblineage',
       platforms=['Jupyter Notebook 4.2.x'],
       zip_safe=False,
       install_requires=[
-          'notebook>=4.2.0,<5.0',
+          'notebook>=4.2.0',
       ],
       entry_points={
           'console_scripts': [

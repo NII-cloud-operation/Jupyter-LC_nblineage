@@ -4,7 +4,7 @@ Jupyter-LC_nblineage is a extension that assigns ID(meme) to notebooks and cells
 
 ## Prerequisite
 
-* Jupyter Notebook 4.2.x
+* Jupyter Notebook 4.2.x or 5.x
 
 ##  Install
 
