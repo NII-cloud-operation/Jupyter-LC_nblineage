@@ -53,6 +53,6 @@ class TrackingServer(LoggingConfigurable):
             with io.open(self.server_signature_file, 'r') as f:
                 return f.read()
         else:
-            sign_id = str(uuid1()).decode('utf-8')
+            sign_id = u'%s' % str(uuid1())
             self._write_server_signature_file(sign_id)
             return sign_id
