@@ -1,6 +1,6 @@
 from notebook.base.handlers import IPythonHandler
 from notebook.utils import url_path_join
-from tracking_server import TrackingServer
+from .tracking_server import TrackingServer
 from . import handler
 
 # nbextension

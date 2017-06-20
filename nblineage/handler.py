@@ -1,7 +1,7 @@
 from notebook.base.handlers import IPythonHandler
 from tornado import web
 from uuid import uuid1
-from tracking_server import TrackingServer
+from .tracking_server import TrackingServer
 import itertools
 
 class UUIDv1Handler(IPythonHandler):
