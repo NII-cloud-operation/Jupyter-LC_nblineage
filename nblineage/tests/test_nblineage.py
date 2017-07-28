@@ -2,7 +2,11 @@ import unittest
 import os.path
 import io
 import nbformat
-import exceptions
+try:
+    from exceptions import SystemExit
+except ImportError:
+    # in Python 3
+    pass
 
 import nblineage
 import nblineage.extensionapp
@@ -73,16 +77,16 @@ class TestNbLineageApp(unittest.TestCase):
 
         self.assertIsNot(nb, newnb)
         self.assertNotEqual(nb, newnb)
-        self.assertTrue(newnb.metadata['lc_notebook_meme'].has_key('current'))
-        self.assertFalse(newnb.metadata['lc_notebook_meme'].has_key('history'))
-        self.assertFalse(newnb.metadata['lc_notebook_meme'].has_key('root_cells'))
+        self.assertTrue('current' in newnb.metadata['lc_notebook_meme'])
+        self.assertFalse('history' in newnb.metadata['lc_notebook_meme'])
+        self.assertFalse('root_cells' in newnb.metadata['lc_notebook_meme'])
 
         for cell in nb.cells:
-            self.assertFalse(cell.metadata.has_key('lc_cell_meme'))
+            self.assertFalse('lc_cell_meme' in cell.metadata)
 
         for prev_cell, cell, next_cell in self._enum_prev_next_items(newnb.cells):
-            self.assertTrue(cell.metadata['lc_cell_meme'].has_key('current'))
-            self.assertFalse(cell.metadata['lc_cell_meme'].has_key('history'))
+            self.assertTrue('current' in cell.metadata['lc_cell_meme'])
+            self.assertFalse('history' in cell.metadata['lc_cell_meme'])
             if prev_cell is not None:
                 self.assertEqual(
                     prev_cell.metadata['lc_cell_meme']['current'],
@@ -112,8 +116,8 @@ class TestNbLineageApp(unittest.TestCase):
         gen = meme.MemeGenerator()
         newnb = gen.from_notebook_node(nb, copy=True)
 
-        self.assertTrue(newnb.cells[2].metadata['lc_cell_meme'].has_key('current'))
-        self.assertFalse(newnb.cells[2].metadata['lc_cell_meme'].has_key('history'))
+        self.assertTrue('current' in newnb.cells[2].metadata['lc_cell_meme'])
+        self.assertFalse('history' in newnb.cells[2].metadata['lc_cell_meme'])
         self.assertEqual(
             newnb.cells[2].metadata['lc_cell_meme']['current'],
             newnb.cells[1].metadata['lc_cell_meme']['next'])
@@ -157,10 +161,10 @@ class TestNbLineageApp(unittest.TestCase):
         gen = meme.MemeGenerator()
         newnb = gen.from_notebook_node(nb, copy=True)
 
-        self.assertTrue(newnb.cells[2].metadata['lc_cell_meme'].has_key('current'))
-        self.assertTrue(newnb.cells[3].metadata['lc_cell_meme'].has_key('current'))
-        self.assertFalse(newnb.cells[2].metadata['lc_cell_meme'].has_key('history'))
-        self.assertFalse(newnb.cells[3].metadata['lc_cell_meme'].has_key('history'))
+        self.assertTrue('current' in newnb.cells[2].metadata['lc_cell_meme'])
+        self.assertTrue('current' in newnb.cells[3].metadata['lc_cell_meme'])
+        self.assertFalse('history' in newnb.cells[2].metadata['lc_cell_meme'])
+        self.assertFalse('history' in newnb.cells[3].metadata['lc_cell_meme'])
         self.assertEqual(
             newnb.cells[2].metadata['lc_cell_meme']['current'],
             newnb.cells[1].metadata['lc_cell_meme']['next'])
@@ -190,8 +194,8 @@ class TestNbLineageApp(unittest.TestCase):
         gen = meme.MemeGenerator()
         newnb = gen.from_notebook_node(nb, copy=True)
 
-        self.assertTrue(newnb.cells[0].metadata['lc_cell_meme'].has_key('history'))
-        self.assertTrue(newnb.cells[1].metadata['lc_cell_meme'].has_key('history'))
+        self.assertTrue('history' in newnb.cells[0].metadata['lc_cell_meme'])
+        self.assertTrue('history' in newnb.cells[1].metadata['lc_cell_meme'])
         self.assertEqual(
             newnb.cells[1].metadata['lc_cell_meme']['current'],
             newnb.cells[0].metadata['lc_cell_meme']['next'])
@@ -348,7 +352,7 @@ class TestNbLineageApp(unittest.TestCase):
             app = nblineage.extensionapp.ExtensionApp()
             app.initialize(['new-root-meme', source_path, 'output.ipynb'])
 
-            with self.assertRaises(exceptions.SystemExit):
+            with self.assertRaises(SystemExit):
                 app.start()
 
 if __name__ == '__main__':
