@@ -15,7 +15,7 @@ def enum_prev_next_items(items):
     return zip(prev_items, items, next_items)
 
 def get_or_create(d, name, init):
-    if d.has_key(name):
+    if name in d:
         value = d[name]
     else:
         value = init()
@@ -48,15 +48,15 @@ class MemeGenerator(LoggingConfigurable):
 
     def _update_prev_next_history(self, nb):
         for prev_cell, cell, next_cell in enum_prev_next_items(nb.cells):
-            if not cell.metadata.has_key('lc_cell_meme'):
+            if 'lc_cell_meme' not in cell.metadata:
                 continue
             memeobj = cell.metadata['lc_cell_meme']
 
-            if not memeobj.has_key('current'):
+            if 'current' not in memeobj:
                 continue
-            if not memeobj.has_key('previous'):
+            if 'previous' not in memeobj:
                 continue
-            if not memeobj.has_key('next'):
+            if 'next' not in memeobj:
                 continue
 
             prev_meme = memeobj['previous'];
@@ -83,13 +83,13 @@ class MemeGenerator(LoggingConfigurable):
 
     def _generate_notebook_meme(self, nb):
         memeobj = get_or_create(nb.metadata, 'lc_notebook_meme', lambda: dict())
-        if not memeobj.has_key('current'):
+        if 'current' not in memeobj:
             memeobj['current'] = str(uuid1())
 
     def _generate_cell_meme(self, nb):
         for cell in nb.cells:
             memeobj = get_or_create(cell.metadata, 'lc_cell_meme', lambda: dict())
-            if not memeobj.has_key('current'):
+            if 'current' not in memeobj:
                 memeobj['current'] = str(uuid1())
 
     def _update_prev_next_meme(self, nb):
