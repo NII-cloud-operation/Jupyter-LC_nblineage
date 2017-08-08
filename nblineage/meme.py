@@ -4,7 +4,7 @@ from nbformat import notebooknode
 from uuid import uuid1
 
 from traitlets.config.configurable import LoggingConfigurable
-from traitlets import Int
+from traitlets import Int, Bool
 
 def enum_prev_next_items(items):
     if len(items) == 0:
@@ -111,6 +111,10 @@ class NewRootMemeGenerator(LoggingConfigurable):
                        help='Max size of history for trimming, by default do nothing'
                       ).tag(config=True)
 
+    clear_server_signature = Bool(False, allow_none=False,
+                       help='If True, clear server signature metadata'
+                      ).tag(config=True)
+
     def __init__(self, **kwargs):
         super(NewRootMemeGenerator, self).__init__(**kwargs)
 
@@ -132,6 +136,11 @@ class NewRootMemeGenerator(LoggingConfigurable):
         self._update_cell_meme(nb)
         self._update_prev_next_cell_meme(nb)
         self._update_root_cells(nb)
+
+        if self.clear_server_signature:
+            self.log.debug('Clear server signature metadata')
+            if 'lc_server_signature' in nb.metadata['lc_notebook_meme']:
+                del nb.metadata['lc_notebook_meme']['lc_server_signature']
 
         return nb
 

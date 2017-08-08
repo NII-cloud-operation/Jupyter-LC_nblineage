@@ -77,6 +77,14 @@ class NewRootMemeApp(Application):
         'trim-history' : 'NewRootMemeGenerator.trim_history',
         'log-level' : 'Application.log_level'
     })
+    flags = Dict({
+        'clear-server-signature' : ({
+            'NewRootMemeGenerator' : {'clear_server_signature': True }
+        }, 'Clear server signature metadata'),
+        'debug' : ({
+            'Application' : {'log_level' : 10}
+        }, "Set loglevel to DEBUG")
+    })
 
     @catch_config_error
     def initialize(self, argv=None):

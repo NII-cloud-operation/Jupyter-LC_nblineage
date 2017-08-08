@@ -355,6 +355,28 @@ class TestNbLineageApp(unittest.TestCase):
             newnb2.cells[2].metadata['lc_cell_meme']['current'],
             newnb3.cells[2].metadata['lc_cell_meme']['current'])
 
+    def test_new_root_meme_clear_server_signature(self):
+        nb = self._read_notebook('tests/notebooks/notebook.ipynb')
+        nb.metadata['lc_notebook_meme']['lc_server_signature'] = {
+            "current": {
+                "notebook_dir": "/notebooks",
+                "notebook_path": "/",
+                "server_url": "http://localhost:8888/",
+                "signature_id": "8a72521c-7342-11e7-8bc1-0242ac110002"
+            }
+        }
+
+        newroot_gen = meme.NewRootMemeGenerator()
+        newroot_gen.clear_server_signature = False
+        newnb = newroot_gen.from_notebook_node(nb, copy=True)
+
+        self.assertTrue('lc_server_signature' in newnb.metadata['lc_notebook_meme'])
+
+        newroot_gen.clear_server_signature = True
+        newnb = newroot_gen.from_notebook_node(nb, copy=True)
+
+        self.assertFalse('lc_server_signature' in newnb.metadata['lc_notebook_meme'])
+
     def test_generate_and_new_root_meme(self):
         nb = self._read_notebook('tests/notebooks/notebook-nomeme.ipynb')
 
