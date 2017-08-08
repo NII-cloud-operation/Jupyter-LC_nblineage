@@ -5,7 +5,7 @@ import io
 from ._version import __version__
 
 from notebook.nbextensions import (InstallNBExtensionApp, EnableNBExtensionApp,
-    DisableNBExtensionApp, flags, aliases)
+    DisableNBExtensionApp)
 
 from jupyter_core.application import JupyterApp
 try:
@@ -19,7 +19,7 @@ from notebook import serverextensions
 
 from traitlets.config.application import catch_config_error
 from traitlets.config.application import Application
-from traitlets import Unicode
+from traitlets import Unicode, Dict, List
 
 import nbformat
 from . import meme
@@ -69,8 +69,27 @@ class NewRootMemeApp(Application):
     version = __version__
 
     examples = """
-        jupyter nblineage new-root-meme <source.ipynb> <output.ipynb>
+        jupyter nblineage new-root-meme [options] <source.ipynb> <output.ipynb>
     """
+
+    classes = List([meme.NewRootMemeGenerator])
+    aliases = Dict({
+        'trim-history' : 'NewRootMemeGenerator.trim_history',
+        'log-level' : 'Application.log_level'
+    })
+    flags = Dict({
+        'clear-server-signature' : ({
+            'NewRootMemeGenerator' : {'clear_server_signature': True }
+        }, 'Clear server signature metadata'),
+        'debug' : ({
+            'Application' : {'log_level' : 10}
+        }, "Set loglevel to DEBUG")
+    })
+
+    @catch_config_error
+    def initialize(self, argv=None):
+        super(NewRootMemeApp, self).initialize(argv)
+        self.newroot_gen = meme.NewRootMemeGenerator(config=self.config)
 
     def start(self):
         if len(self.extra_args) != 2:
@@ -86,8 +105,7 @@ class NewRootMemeApp(Application):
             sys.stderr.write('{} already exists\n'.format(dest))
             sys.exit(-1)
 
-        newroot = meme.NewRootMemeGenerator()
-        nb = newroot.from_filename(src)
+        nb = self.newroot_gen.from_filename(src)
 
         with io.open(dest, 'w', encoding='utf-8') as f:
             nbformat.write(nb, f)

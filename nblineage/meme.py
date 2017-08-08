@@ -4,6 +4,7 @@ from nbformat import notebooknode
 from uuid import uuid1
 
 from traitlets.config.configurable import LoggingConfigurable
+from traitlets import Int, Bool
 
 def enum_prev_next_items(items):
     if len(items) == 0:
@@ -106,6 +107,14 @@ class MemeGenerator(LoggingConfigurable):
 
 class NewRootMemeGenerator(LoggingConfigurable):
 
+    trim_history = Int(None, min=0, allow_none=True,
+                       help='Max size of history for trimming, by default do nothing'
+                      ).tag(config=True)
+
+    clear_server_signature = Bool(False, allow_none=False,
+                       help='If True, clear server signature metadata'
+                      ).tag(config=True)
+
     def __init__(self, **kwargs):
         super(NewRootMemeGenerator, self).__init__(**kwargs)
 
@@ -127,6 +136,11 @@ class NewRootMemeGenerator(LoggingConfigurable):
         self._update_cell_meme(nb)
         self._update_prev_next_cell_meme(nb)
         self._update_root_cells(nb)
+
+        if self.clear_server_signature:
+            self.log.debug('Clear server signature metadata')
+            if 'lc_server_signature' in nb.metadata['lc_notebook_meme']:
+                del nb.metadata['lc_notebook_meme']['lc_server_signature']
 
         return nb
 
@@ -155,11 +169,25 @@ class NewRootMemeGenerator(LoggingConfigurable):
                 'previous': prev_meme,
                 'next': next_meme
             })
+            if self.trim_history is not None:
+                size = self.trim_history
+                if size == 0:
+                    history = list()
+                else:
+                    history = history[-size:]
+                memeobj['history'] = history
 
     def _update_notebook_meme(self, nb):
         memeobj = nb.metadata['lc_notebook_meme']
         history = get_or_create(memeobj, 'history', lambda: list())
         history.append(memeobj['current'])
+        if self.trim_history is not None:
+            size = self.trim_history
+            if size == 0:
+                history = list()
+            else:
+                history = history[-size:]
+            memeobj['history'] = history
         memeobj['current'] = str(uuid1())
 
     def _update_cell_meme(self, nb):

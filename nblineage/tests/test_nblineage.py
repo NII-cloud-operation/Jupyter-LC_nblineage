@@ -259,6 +259,124 @@ class TestNbLineageApp(unittest.TestCase):
         self.assertIsNone(
             newnb.cells[2].metadata['lc_cell_meme']['history'][0]['next'])
 
+    def test_new_root_meme_trim_history_0(self):
+        nb = self._read_notebook('tests/notebooks/notebook.ipynb')
+
+        newroot_gen = meme.NewRootMemeGenerator()
+        newroot_gen.trim_history = 0
+        newnb = newroot_gen.from_notebook_node(nb, copy=True)
+
+        self.assertNotEqual(
+            nb.metadata['lc_notebook_meme']['current'],
+            newnb.metadata['lc_notebook_meme']['current'])
+        self.assertEqual(0, len(newnb.metadata['lc_notebook_meme']['history']))
+
+        self.assertEqual(0, len(newnb.cells[0].metadata['lc_cell_meme']['history']))
+        self.assertEqual(0, len(newnb.cells[1].metadata['lc_cell_meme']['history']))
+        self.assertEqual(0, len(newnb.cells[2].metadata['lc_cell_meme']['history']))
+
+        self.assertNotEqual(
+            nb.cells[0].metadata['lc_cell_meme']['current'],
+            newnb.cells[0].metadata['lc_cell_meme']['current'])
+        self.assertNotEqual(
+            nb.cells[1].metadata['lc_cell_meme']['current'],
+            newnb.cells[1].metadata['lc_cell_meme']['current'])
+        self.assertNotEqual(
+            nb.cells[2].metadata['lc_cell_meme']['current'],
+            newnb.cells[2].metadata['lc_cell_meme']['current'])
+
+    def test_new_root_meme_trim_history_n(self):
+        nb = self._read_notebook('tests/notebooks/notebook.ipynb')
+
+        newroot_gen = meme.NewRootMemeGenerator()
+        newroot_gen.trim_history = 2
+
+        # 1st
+        newnb1 = newroot_gen.from_notebook_node(nb, copy=True)
+
+        self.assertNotEqual(
+            nb.metadata['lc_notebook_meme']['current'],
+            newnb1.metadata['lc_notebook_meme']['current'])
+        self.assertEqual(1, len(newnb1.metadata['lc_notebook_meme']['history']))
+
+        self.assertEqual(1, len(newnb1.cells[0].metadata['lc_cell_meme']['history']))
+        self.assertEqual(1, len(newnb1.cells[1].metadata['lc_cell_meme']['history']))
+        self.assertEqual(1, len(newnb1.cells[2].metadata['lc_cell_meme']['history']))
+
+        self.assertNotEqual(
+            nb.cells[0].metadata['lc_cell_meme']['current'],
+            newnb1.cells[0].metadata['lc_cell_meme']['current'])
+        self.assertNotEqual(
+            nb.cells[1].metadata['lc_cell_meme']['current'],
+            newnb1.cells[1].metadata['lc_cell_meme']['current'])
+        self.assertNotEqual(
+            nb.cells[2].metadata['lc_cell_meme']['current'],
+            newnb1.cells[2].metadata['lc_cell_meme']['current'])
+
+        # 2nd
+        newnb2 = newroot_gen.from_notebook_node(newnb1, copy=True)
+        self.assertNotEqual(
+            newnb1.metadata['lc_notebook_meme']['current'],
+            newnb2.metadata['lc_notebook_meme']['current'])
+        self.assertEqual(2, len(newnb2.metadata['lc_notebook_meme']['history']))
+
+        self.assertEqual(2, len(newnb2.cells[0].metadata['lc_cell_meme']['history']))
+        self.assertEqual(2, len(newnb2.cells[1].metadata['lc_cell_meme']['history']))
+        self.assertEqual(2, len(newnb2.cells[2].metadata['lc_cell_meme']['history']))
+
+        self.assertNotEqual(
+            newnb1.cells[0].metadata['lc_cell_meme']['current'],
+            newnb2.cells[0].metadata['lc_cell_meme']['current'])
+        self.assertNotEqual(
+            newnb1.cells[1].metadata['lc_cell_meme']['current'],
+            newnb2.cells[1].metadata['lc_cell_meme']['current'])
+        self.assertNotEqual(
+            newnb1.cells[2].metadata['lc_cell_meme']['current'],
+            newnb2.cells[2].metadata['lc_cell_meme']['current'])
+
+        # 3rd
+        newnb3 = newroot_gen.from_notebook_node(newnb2, copy=True)
+        self.assertNotEqual(
+            newnb2.metadata['lc_notebook_meme']['current'],
+            newnb3.metadata['lc_notebook_meme']['current'])
+        self.assertEqual(2, len(newnb3.metadata['lc_notebook_meme']['history']))
+
+        self.assertEqual(2, len(newnb3.cells[0].metadata['lc_cell_meme']['history']))
+        self.assertEqual(2, len(newnb3.cells[1].metadata['lc_cell_meme']['history']))
+        self.assertEqual(2, len(newnb3.cells[2].metadata['lc_cell_meme']['history']))
+
+        self.assertNotEqual(
+            newnb2.cells[0].metadata['lc_cell_meme']['current'],
+            newnb3.cells[0].metadata['lc_cell_meme']['current'])
+        self.assertNotEqual(
+            newnb2.cells[1].metadata['lc_cell_meme']['current'],
+            newnb3.cells[1].metadata['lc_cell_meme']['current'])
+        self.assertNotEqual(
+            newnb2.cells[2].metadata['lc_cell_meme']['current'],
+            newnb3.cells[2].metadata['lc_cell_meme']['current'])
+
+    def test_new_root_meme_clear_server_signature(self):
+        nb = self._read_notebook('tests/notebooks/notebook.ipynb')
+        nb.metadata['lc_notebook_meme']['lc_server_signature'] = {
+            "current": {
+                "notebook_dir": "/notebooks",
+                "notebook_path": "/",
+                "server_url": "http://localhost:8888/",
+                "signature_id": "8a72521c-7342-11e7-8bc1-0242ac110002"
+            }
+        }
+
+        newroot_gen = meme.NewRootMemeGenerator()
+        newroot_gen.clear_server_signature = False
+        newnb = newroot_gen.from_notebook_node(nb, copy=True)
+
+        self.assertTrue('lc_server_signature' in newnb.metadata['lc_notebook_meme'])
+
+        newroot_gen.clear_server_signature = True
+        newnb = newroot_gen.from_notebook_node(nb, copy=True)
+
+        self.assertFalse('lc_server_signature' in newnb.metadata['lc_notebook_meme'])
+
     def test_generate_and_new_root_meme(self):
         nb = self._read_notebook('tests/notebooks/notebook-nomeme.ipynb')
 
