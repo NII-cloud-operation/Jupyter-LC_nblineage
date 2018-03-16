@@ -34,6 +34,8 @@ class TrackingServer(LoggingConfigurable):
     ).tag(config=True)
     @default('server_signature_file')
     def _server_signature_file_default(self):
+        if 'lc_nblineage_server_signature_path' in os.environ:
+            return os.environ['lc_nblineage_server_signature_path']
         if not self.data_dir:
             return ''
         return os.path.join(self.data_dir, 'server_signature')
