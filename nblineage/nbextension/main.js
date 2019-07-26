@@ -14,7 +14,7 @@ define([
         codecell.CodeCell.prototype.get_callbacks = function() {
             var callbacks = previous_get_callbacks.apply(this, arguments);
             var cell = this;
-            var prev_reply_callback = callbacks.shell.reply
+            var prev_reply_callback = callbacks.shell.reply;
             callbacks.shell.reply = function (msg) {
                 if (msg.msg_type === 'execute_reply') {
                     console.log('[nblineage] execution end time', msg.header.date);
@@ -36,7 +36,7 @@ define([
         codecell.CodeCell.prototype.clear_output = function () {
             var ret = previous_clear_output.apply(this, arguments);
             if (this.output_area.outputs.length === 0 && this.metadata['lc_cell_meme']){
-                delete this.metadata['lc_cell_meme']['execution_end_time']
+                delete this.metadata['lc_cell_meme']['execution_end_time'];
             }
             return ret;
         };
