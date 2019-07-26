@@ -47,6 +47,7 @@ Example of cell's meme at `lc_cell_meme` in cell metadata.
     "current": "8f5c5fe2-71cc-11e7-9abe-02420aff0008",         ## The meme id for this cell
     "previous": "8f5c5cea-71cc-11e7-9abe-02420aff0008",        ## The context of this cell as reference to the previous and the next cells
     "next": "f2125b84-4669-11e7-958b-02420aff0006",
+    "execution_end_time": "2019-07-25T09:53:13.857572Z",       ## The end time of execution
     "history": [                                               ## The history of this notebook's context
       {
         "current": "8f5c5fe2-71cc-11e7-9abe-02420aff0008",
