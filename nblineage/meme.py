@@ -16,12 +16,9 @@ def enum_prev_next_items(items):
     return zip(prev_items, items, next_items)
 
 def get_or_create(d, name, init):
-    if name in d:
-        value = d[name]
-    else:
-        value = init()
-        d[name] = value
-    return value
+    if name not in d:
+        d[name] = init()
+    return d[name]
 
 class MemeGenerator(LoggingConfigurable):
 
