@@ -45,6 +45,10 @@ define([
     function load_extension() {
         events.on('before_save.Notebook', function(event, data) {
             var notebook = Jupyter.notebook;
+            var is_changed_server_signature = tracking_server.track_server(notebook);
+            if (is_changed_server_signature) {
+                meme.generate_branch_number_all(Jupyter.notebook);
+            }
             var result = meme.generate_meme(Jupyter.notebook);
             if (!result) {
                 console.error('[nblineage] Failed to generate meme');
@@ -54,13 +58,11 @@ define([
                         notebook.notebook_path,
                         result.cell_history_count,
                         result.meme_count);
-
-            tracking_server.track_server(notebook);
         });
 
         events.on('create.Cell', function (e, data) {
             setTimeout(function() {
-                if (data.cell['lc_cell_meme']) {
+                if (data.cell.metadata['lc_cell_meme']) {
                     meme.generate_branch_number(data.cell);
                 }
             }, 0);

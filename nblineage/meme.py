@@ -1,4 +1,5 @@
 import io
+from copy import deepcopy
 import nbformat
 from nbformat import notebooknode
 from uuid import uuid1
@@ -114,6 +115,7 @@ class NewRootMemeGenerator(LoggingConfigurable):
 
     def __init__(self, **kwargs):
         super(NewRootMemeGenerator, self).__init__(**kwargs)
+        self.new_cells_history = None
 
     def from_filename(self, notebook_filename):
         self.log.debug('Read notebook file: {}'.format(notebook_filename))
@@ -124,6 +126,8 @@ class NewRootMemeGenerator(LoggingConfigurable):
         return self.from_notebook_node(nbformat.read(notebook_file_stream, as_version=4))
 
     def from_notebook_node(self, nb, copy=False):
+        orig_nb = deepcopy(nb)
+
         if copy:
             nb = notebooknode.from_dict(nb.copy())
 
@@ -133,6 +137,7 @@ class NewRootMemeGenerator(LoggingConfigurable):
         self._update_cell_meme(nb)
         self._update_prev_next_cell_meme(nb)
         self._update_root_cells(nb)
+        self._update_root_cells_history(orig_nb, nb)
 
         if self.clear_server_signature:
             self.log.debug('Clear server signature metadata')
@@ -215,3 +220,20 @@ class NewRootMemeGenerator(LoggingConfigurable):
         root_cells = [x.metadata['lc_cell_meme']['current'] for x in nb.cells]
         nb.metadata['lc_notebook_meme']['root_cells']= root_cells
 
+    def _update_root_cells_history(self, orig_nb, nb):
+        table = []
+        for i in range(len(nb.cells)):
+            orig_cell = orig_nb.cells[i]
+            orig_meme = None
+            if 'lc_cell_meme' in orig_cell.metadata and \
+                    'current' in orig_cell.metadata['lc_cell_meme']:
+                orig_meme = orig_cell.metadata['lc_cell_meme']['current']
+            meme = nb.cells[i].metadata['lc_cell_meme']['current']
+            table.append((orig_meme, meme))
+
+        memeobj = nb.metadata['lc_notebook_meme']
+        history = get_or_create(memeobj, 'root_cells_history', lambda: list())
+        history.append(table)
+
+        self.new_cells_history = table
+        return table

@@ -11,7 +11,7 @@ define([
 
         if (!server_env) {
             console.error('[nblineage] server information is not yet initialized');
-            return;
+            return false;
         }
 
         if (notebook.metadata['lc_notebook_meme'] === undefined) {
@@ -38,6 +38,10 @@ define([
                 tracking_metadata['history'].push(tracking_metadata['current']);
             }
             tracking_metadata['current'] = server_signature;
+
+            return true;
+        } else {
+            return false;
         }
     }
 

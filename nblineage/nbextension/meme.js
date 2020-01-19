@@ -198,17 +198,24 @@ define([
         if (!memeobj) {
             return;
         }
-        var meme = memeobj['_new_current'] || memeobj['current'];
+        var meme = memeobj['current'];
         if (!meme) {
             return;
         }
-
         memeobj['_new_current'] = add_branch_number(meme);
+    }
+
+    function generate_branch_number_all(notebook) {
+        var cells = notebook.get_cells();
+        for (var i=0; i<cells.length; ++i) {
+            generate_branch_number(cells[i]);
+        }
     }
 
     return {
         generate_uuid: generate_uuid,
         generate_meme: generate_meme,
-        generate_branch_number: generate_branch_number
+        generate_branch_number: generate_branch_number,
+        generate_branch_number_all: generate_branch_number_all
     };
 })
