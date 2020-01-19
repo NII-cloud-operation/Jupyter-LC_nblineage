@@ -196,16 +196,14 @@ define([
     function generate_branch_number(cell) {
         var memeobj = cell.metadata['lc_cell_meme'];
         if (!memeobj) {
-            memeobj = cell.metadata['lc_cell_meme'] = {}
+            return;
+        }
+        var meme = memeobj['_new_current'] || memeobj['current'];
+        if (!meme) {
+            return;
         }
 
-        var meme = memeobj['_new_current'] || memeobj['current'];
-        if (meme) {
-            memeobj['_new_current'] = add_branch_number(meme);
-        } else {
-            var uuids = generate_uuid(1);
-            memeobj['_new_current'] = uuids[0];
-        }
+        memeobj['_new_current'] = add_branch_number(meme);
     }
 
     return {
