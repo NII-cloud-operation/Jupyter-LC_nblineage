@@ -10,8 +10,7 @@ define([
         console.log('[nblineage] tracking the notebook server environment');
 
         if (!server_env) {
-            console.error('[nblineage] server information is not yet initialized');
-            return false;
+            throw new Error('[nblineage] server information is not yet initialized');
         }
 
         if (notebook.metadata['lc_notebook_meme'] === undefined) {

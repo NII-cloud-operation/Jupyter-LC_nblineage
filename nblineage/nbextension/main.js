@@ -8,6 +8,8 @@ define([
 ], function($, Jupyter, events, codecell, meme, tracking_server) {
     'use strict';
 
+    var notification_area = Jupyter.notification_area.widget('nblineage');
+
     function patch_CodeCell_get_callbacks() {
         console.log('[nblineage] patching CodeCell.prototype.get_callbacks');
         var previous_get_callbacks = codecell.CodeCell.prototype.get_callbacks;
@@ -45,19 +47,34 @@ define([
     function load_extension() {
         events.on('before_save.Notebook', function(event, data) {
             var notebook = Jupyter.notebook;
-            var is_changed_server_signature = tracking_server.track_server(notebook);
+            var is_changed_server_signature = false;
+            try {
+                tracking_server.track_server(notebook);
+            } catch (e) {
+                notification_area.danger('[nblineage] Failed to track server', undefined, undefined, {
+                    title: e.message
+                });
+                console.error(e);
+            }
             if (is_changed_server_signature) {
                 meme.generate_branch_number_all(Jupyter.notebook);
             }
-            var result = meme.generate_meme(Jupyter.notebook);
-            if (!result) {
-                console.error('[nblineage] Failed to generate meme');
-                return;
+
+            var result;
+            try {
+                meme.generate_meme(Jupyter.notebook);
+            } catch (e) {
+                notification_area.danger('[nblineage] Failed to generate meme', undefined, undefined, {
+                    title: e.message
+                });
+                console.error(e);
             }
-            console.log('[nblineage] Generated meme: path=%s, cell_history_count=%d, meme_count=%d',
-                        notebook.notebook_path,
-                        result.cell_history_count,
-                        result.meme_count);
+            if (result) {
+                console.log('[nblineage] Generated meme: path=%s, cell_history_count=%d, meme_count=%d',
+                    notebook.notebook_path,
+                    result.cell_history_count,
+                    result.meme_count);
+            }
         });
 
         events.on('create.Cell', function (e, data) {

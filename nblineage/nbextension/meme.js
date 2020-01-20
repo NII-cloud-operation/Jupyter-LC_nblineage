@@ -30,7 +30,7 @@ define([
         if (!memeobj['current']) {
             if(uuids) {
                 if (uuids.length <= 0) {
-                    throw "too few generated UUIDs"
+                    throw new Error('[nblineage] too few generated UUIDs');
                 }
                 memeobj['current'] = uuids.shift();
             }
@@ -57,7 +57,7 @@ define([
         } else if(!memeobj['current']) {
             if(uuids) {
                 if (uuids.length <= 0) {
-                    throw "too few generated UUIDs"
+                    throw new Error('[nblineage] too few generated UUIDs');
                 }
                 memeobj['current'] = uuids.shift()
             }
@@ -144,8 +144,7 @@ define([
         var meme_count = generate_notebook_meme(notebook, null);
         var uuids = generate_uuid(meme_count);
         if (!uuids) {
-            console.error('Failed to get UUIDs from server');
-            return;
+            throw new Error('[nblineage] Failed to get UUIDs from server');
         }
         meme_count = generate_notebook_meme(notebook, uuids);
         update_prev_next_meme(notebook);
