@@ -49,7 +49,7 @@ define([
             var notebook = Jupyter.notebook;
             var is_changed_server_signature = false;
             try {
-                tracking_server.track_server(notebook);
+                is_changed_server_signature = tracking_server.track_server(notebook);
             } catch (e) {
                 notification_area.danger('[nblineage] Failed to track server', undefined, undefined, {
                     title: e.message

@@ -1,46 +1,16 @@
 from .utils import *
+from .asserts import *
 
 
-# TODO: test meme history
-# TODO: test merge and split cells operation
-# TODO: test copying multiple cells operation
-# TODO: test move and delete cells operation (validate changed order)
-# TODO: test branch number > 10
-# TODO: test adding branch when different server signature
-# TODO: test server error
-
-
-def assert_cell_meme_order(current_meme_list, metadata_list):
-    n = len(current_meme_list)
-    assert n == len(metadata_list)
-    for i in range(n):
-        assert metadata_list[i]['lc_cell_meme']['current'] == current_meme_list[i]
-    for i in range(n):
-        expected_previous_meme = current_meme_list[i - 1] if i > 0 else None
-        expected_next_meme = current_meme_list[i + 1] if i + 1 < n else None
-        assert metadata_list[i]['lc_cell_meme']['previous'] == expected_previous_meme
-        assert metadata_list[i]['lc_cell_meme']['next'] == expected_next_meme
-
-
-def assert_same_cell_meme_uuid(meme1, meme2):
-    assert parse_cell_meme(meme1)['uuid'] == parse_cell_meme(meme2)['uuid']
-
-
-def assert_cell_meme_branch_number(meme, branch_count):
-    parts = parse_cell_meme(meme)
-    assert parts['branch_count'] == branch_count
-    for i in range(parts['branch_count']):
-        assert len(parts['branch_numbers'][i]) == 4
-    assert len(set(parts['branch_numbers'])) == len(parts['branch_numbers'])
-
-
-def test_lc_cell_initialized(prefill_notebook):
+def test_lc_cell_meme_initialized(prefill_notebook):
     initial_cells = ['print("a")', 'print("b")', 'print("c")']
     notebook = prefill_notebook(initial_cells)
 
     metadata_list = get_cell_metadata_list(notebook)
     for metadata in metadata_list:
-        assert 'lc_cell_meme' not in metadata
+        assert_json(metadata, {
+            'lc_cell_meme': NOT_IN
+        })
 
 
 def test_lc_cell_meme_execution_end_time(prefill_notebook):
@@ -49,22 +19,21 @@ def test_lc_cell_meme_execution_end_time(prefill_notebook):
 
     for i in range(len(initial_cells)):
         execute_cell(notebook, i)
+
     metadata_list = get_cell_metadata_list(notebook)
     for metadata in metadata_list:
-        assert 'lc_cell_meme' in metadata
-        assert 'execution_end_time' in metadata['lc_cell_meme']
-        assert type(metadata['lc_cell_meme']['execution_end_time']) is str
+        assert_json(metadata, {
+            'lc_cell_meme': {
+                'execution_end_time': str,
+            }
+        })
 
 
-def test_lc_cell_meme(notebook):
-    current_meme_list = []
-
-    # edit cell(0)
-    index = 0
-    notebook.edit_cell(index=index, content='print()')
+def test_lc_cell_meme_first(notebook):
+    notebook.edit_cell(index=0, content='print()')
     save_notebook(notebook)
 
-    metadata = get_cell_metadata(notebook, index=index)
+    metadata = get_cell_metadata(notebook, index=0)
     assert_json(metadata, {
         'lc_cell_meme': {
             'current': str,
@@ -72,146 +41,312 @@ def test_lc_cell_meme(notebook):
         }
     })
     meme = metadata['lc_cell_meme']['current']
-    assert meme not in current_meme_list
     assert_cell_meme_branch_number(meme, 0)
 
-    current_meme_list.append(meme)
-    assert_cell_meme_order(current_meme_list, get_cell_metadata_list(notebook))
 
-    # add cell(1)
-    base_index = 0
-    index = 1
-    insert_cell_below(notebook, base_index=base_index, content='print()')
+def test_lc_cell_meme_order(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
+    insert_cell_below(notebook, base_index=1, content='print()')
     save_notebook(notebook)
 
-    metadata = get_cell_metadata(notebook, index=index)
-    assert_json(metadata, {
-        'lc_cell_meme': {
-            'current': str,
-            'history': NOT_IN
+    metadata_list = get_cell_metadata_list(notebook)
+    meme_obj_list = list(map(lambda x: x['lc_cell_meme'], metadata_list))
+    current_meme_list = list(map(lambda x: x['current'], meme_obj_list))
+    assert_json(meme_obj_list, [
+        {
+            'previous': None,
+            'next': current_meme_list[1]
+        },
+        {
+            'previous': current_meme_list[0],
+            'next': current_meme_list[2]
+        },
+        {
+            'previous': current_meme_list[1],
+            'next': None
         }
-    })
-    meme = metadata['lc_cell_meme']['current']
-    assert meme not in current_meme_list
-    assert_cell_meme_branch_number(meme, 0)
+    ])
 
-    current_meme_list.append(meme)
-    assert_cell_meme_order(current_meme_list, get_cell_metadata_list(notebook))
 
-    # add cell(2)
-    base_index = 1
-    index = 2
-    insert_cell_below(notebook, base_index=base_index, content='print()')
+def test_lc_cell_meme_history(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
+    insert_cell_below(notebook, base_index=1, content='print()')
+    insert_cell_below(notebook, base_index=2, content='print()')
+    save_notebook(notebook)
+    metadata_list = get_cell_metadata_list(notebook)
+    meme_obj_list = list(map(lambda x: x['lc_cell_meme'], metadata_list))
+    before_history_list = [
+        [{
+            'current': meme_obj['current'],
+            'next': meme_obj['next'],
+            'previous': meme_obj['previous'],
+        }]
+        for meme_obj in meme_obj_list[:3]
+    ]
+
+    for i in range(5):
+        if i % 2 == 0:
+            move_up_cells(notebook, 1)
+        else:
+            move_down_cells(notebook, 0)
+        save_notebook(notebook)
+
+        metadata_list = get_cell_metadata_list(notebook)
+        updated_metadata_list = metadata_list[:3]
+        not_updated_metadata = metadata_list[3]
+        assert 'history' not in not_updated_metadata['lc_cell_meme']
+
+        if i % 2 == 0:
+            updated_metadata_list[0], updated_metadata_list[1] = \
+                updated_metadata_list[1], updated_metadata_list[0]
+        updated_meme_obj_list = list(map(lambda x: x['lc_cell_meme'], updated_metadata_list))
+        for meme_obj, history in zip(updated_meme_obj_list, before_history_list):
+            assert meme_obj['history'] == history
+            history.append({
+                'current': meme_obj['current'],
+                'next': meme_obj['next'],
+                'previous': meme_obj['previous'],
+            })
+
+
+def test_lc_cell_meme_unique1(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
+    insert_cell_below(notebook, base_index=1, content='print()')
     save_notebook(notebook)
 
-    metadata = get_cell_metadata(notebook, index=index)
-    assert_json(metadata, {
-        'lc_cell_meme': {
-            'current': str,
-            'history': NOT_IN
-        }
-    })
-    meme = metadata['lc_cell_meme']['current']
-    assert meme not in current_meme_list
-    assert_cell_meme_branch_number(meme, 0)
+    metadata_list = get_cell_metadata_list(notebook)
+    current_meme_list = map(lambda x: x['lc_cell_meme']['current'], metadata_list)
+    assert is_unique_list(current_meme_list)
+    current_meme_uuid_list = map(lambda x: parse_cell_meme(x)['uuid'], current_meme_list)
+    assert is_unique_list(current_meme_uuid_list)
 
-    current_meme_list.append(meme)
-    assert_cell_meme_order(current_meme_list, get_cell_metadata_list(notebook))
 
-    # copy and paste(below) from cell(2) to cell(3)
-    base_index = 2
-    index = 3
-    copy_cells(notebook, base_index)
-    paste_cells_below(notebook, base_index=index - 1)
+def test_lc_cell_meme_unique2(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    save_notebook(notebook)
+    insert_cell_below(notebook, base_index=0, content='print()')
+    insert_cell_below(notebook, base_index=1, content='print()')
     save_notebook(notebook)
 
-    metadata = get_cell_metadata(notebook, index=index)
-    assert_json(metadata, {
-        'lc_cell_meme': {
-            'current': str,
-            'history': list
-        }
-    })
-    meme = metadata['lc_cell_meme']['current']
-    assert meme not in current_meme_list
+    metadata_list = get_cell_metadata_list(notebook)
+    current_meme_list = map(lambda x: x['lc_cell_meme']['current'], metadata_list)
+    assert is_unique_list(current_meme_list)
+    current_meme_uuid_list = map(lambda x: parse_cell_meme(x)['uuid'], current_meme_list)
+    assert is_unique_list(current_meme_uuid_list)
 
-    base_meme = get_cell_metadata(notebook, index=base_index)['lc_cell_meme']['current']
-    assert_same_cell_meme_uuid(meme, base_meme)
-    assert_cell_meme_branch_number(meme, 1)
 
-    current_meme_list.append(meme)
-    assert_cell_meme_order(current_meme_list, get_cell_metadata_list(notebook))
+def test_lc_cell_meme_copy_below(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
+    save_notebook(notebook)
+    metadata_list = get_cell_metadata_list(notebook)
+    before_meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
 
-    # copy and paste(below) from cell(2) to cell(4)
-    base_index = 2
-    index = 4
-    copy_cells(notebook, base_index)
-    paste_cells_below_from_menu(notebook, base_index=index - 1)
+    copy_cells(notebook, 1)
+    paste_cells_below(notebook, base_index=1)
     save_notebook(notebook)
 
-    metadata = get_cell_metadata(notebook, index=index)
-    assert_json(metadata, {
-        'lc_cell_meme': {
-            'current': str,
-            'history': list
-        }
-    })
-    meme = metadata['lc_cell_meme']['current']
-    assert meme not in current_meme_list
+    metadata_list = get_cell_metadata_list(notebook)
+    current_meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
+    assert current_meme_list[1] == before_meme_list[1]
+    assert is_same_cell_meme_uuid(current_meme_list[2], current_meme_list[1])
+    assert not is_same_cell_meme_uuid(current_meme_list[2], current_meme_list[0])
+    assert_cell_meme_branch_number(current_meme_list[1], 0)
+    assert_cell_meme_branch_number(current_meme_list[2], 1)
 
-    base_meme = get_cell_metadata(notebook, index=base_index)['lc_cell_meme']['current']
-    assert_same_cell_meme_uuid(meme, base_meme)
-    assert_cell_meme_branch_number(meme, 1)
 
-    current_meme_list.append(meme)
-    assert_cell_meme_order(current_meme_list, get_cell_metadata_list(notebook))
-
-    # copy and paste(above) from cell(4) to cell(5)
-    # pasted index is 4, base index is 5
-    base_index = 4
-    index = 4
-    copy_cells(notebook, base_index)
-    paste_cells_above_from_menu(notebook, base_index=index)
-    save_notebook(notebook)
-    base_index += 1
-
-    metadata = get_cell_metadata(notebook, index=index)
-    assert_json(metadata, {
-        'lc_cell_meme': {
-            'current': str,
-            'history': list
-        }
-    })
-    meme = metadata['lc_cell_meme']['current']
-    assert meme not in current_meme_list
-
-    base_meme = get_cell_metadata(notebook, index=base_index)['lc_cell_meme']['current']
-    assert_same_cell_meme_uuid(meme, base_meme)
-    assert_cell_meme_branch_number(meme, 2)
-
-    current_meme_list.insert(index, meme)
-    assert_cell_meme_order(current_meme_list, get_cell_metadata_list(notebook))
-
-    # copy and paste(replace) from cell(4) to cell(0)
-    base_index = 4
-    index = 0
-    copy_cells(notebook, base_index)
-    paste_cells_replace_from_menu(notebook, base_index=index)
+def test_lc_cell_meme_copy_below_from_menu(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
     save_notebook(notebook)
 
-    metadata = get_cell_metadata(notebook, index=index)
-    assert_json(metadata, {
-        'lc_cell_meme': {
+    copy_cells(notebook, 1)
+    paste_cells_below_from_menu(notebook, base_index=1)
+    save_notebook(notebook)
+
+    metadata_list = get_cell_metadata_list(notebook)
+    current_meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
+    assert is_same_cell_meme_uuid(current_meme_list[2], current_meme_list[1])
+    assert not is_same_cell_meme_uuid(current_meme_list[2], current_meme_list[0])
+    assert_cell_meme_branch_number(current_meme_list[1], 0)
+    assert_cell_meme_branch_number(current_meme_list[2], 1)
+
+
+def test_lc_cell_meme_copy_above_from_menu(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
+    save_notebook(notebook)
+
+    copy_cells(notebook, 1)
+    paste_cells_above_from_menu(notebook, base_index=1)
+    save_notebook(notebook)
+
+    metadata_list = get_cell_metadata_list(notebook)
+    current_meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
+    assert is_same_cell_meme_uuid(current_meme_list[1], current_meme_list[2])
+    assert not is_same_cell_meme_uuid(current_meme_list[1], current_meme_list[0])
+    assert_cell_meme_branch_number(current_meme_list[2], 0)
+    assert_cell_meme_branch_number(current_meme_list[1], 1)
+
+
+def test_lc_cell_meme_copy_replace_from_menu(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
+    save_notebook(notebook)
+
+    copy_cells(notebook, 0)
+    paste_cells_replace_from_menu(notebook, base_index=1)
+    save_notebook(notebook)
+
+    metadata_list = get_cell_metadata_list(notebook)
+    current_meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
+    assert is_same_cell_meme_uuid(current_meme_list[1], current_meme_list[0])
+    assert_cell_meme_branch_number(current_meme_list[0], 0)
+    assert_cell_meme_branch_number(current_meme_list[1], 1)
+
+
+def test_lc_cell_meme_split_cell_from_menu(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
+    save_notebook(notebook)
+
+    split_cell_from_menu(notebook, index=1)
+    save_notebook(notebook)
+
+    # same as paste_cells_above
+    metadata_list = get_cell_metadata_list(notebook)
+    current_meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
+    assert is_same_cell_meme_uuid(current_meme_list[1], current_meme_list[2])
+    assert not is_same_cell_meme_uuid(current_meme_list[1], current_meme_list[0])
+    assert_cell_meme_branch_number(current_meme_list[2], 0)
+    assert_cell_meme_branch_number(current_meme_list[1], 1)
+
+
+def test_lc_cell_meme_merge_cells_above_from_menu(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
+    save_notebook(notebook)
+
+    merge_cells_above_from_menu(notebook, index=0, to_index=1)
+    save_notebook(notebook)
+
+    metadata = get_cell_metadata(notebook, 0)
+    assert_cell_meme_branch_number(metadata['lc_cell_meme']['current'], 0)
+
+
+def test_lc_cell_meme_merge_cells_below_from_menu(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
+    save_notebook(notebook)
+
+    merge_cells_below_from_menu(notebook, index=0, to_index=1)
+    save_notebook(notebook)
+
+    metadata = get_cell_metadata(notebook, 0)
+    assert_cell_meme_branch_number(metadata['lc_cell_meme']['current'], 0)
+
+
+def test_lc_cell_meme_copy_multiple_times(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    save_notebook(notebook)
+
+    for i in range(10):
+        copy_cells(notebook, i)
+        paste_cells_below(notebook, base_index=i)
+        save_notebook(notebook)
+
+        metadata_list = get_cell_metadata_list(notebook)
+        current_meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
+        assert is_same_cell_meme_uuid(current_meme_list[i + 1], current_meme_list[i])
+        assert_cell_meme_branch_number(current_meme_list[i + 1], i + 1)
+        before_meme = parse_cell_meme(current_meme_list[i])
+        current_meme = parse_cell_meme(current_meme_list[i + 1])
+        assert current_meme['branch_numbers'][:-1] == before_meme['branch_numbers']
+
+
+def test_lc_cell_meme_copy_multiple_times_over_10(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    save_notebook(notebook)
+    for i in range(10):
+        copy_cells(notebook, i)
+        paste_cells_below(notebook, base_index=i)
+        save_notebook(notebook)
+
+    for i in range(10, 13):
+        copy_cells(notebook, i)
+        paste_cells_below(notebook, base_index=i)
+        save_notebook(notebook)
+
+        metadata_list = get_cell_metadata_list(notebook)
+        current_meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
+        assert is_same_cell_meme_uuid(current_meme_list[i + 1], current_meme_list[i])
+        assert_cell_meme_branch_number(current_meme_list[i + 1], i + 1)
+        before_meme = parse_cell_meme(current_meme_list[i])
+        current_meme = parse_cell_meme(current_meme_list[i + 1])
+        assert current_meme['branch_numbers'][:-1] == before_meme['branch_numbers'][1:]
+
+
+def test_lc_cell_meme_history_and_order_with_branch_number(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    save_notebook(notebook)
+    before_metadata_list = get_cell_metadata_list(notebook)
+    before_meme_obj_list = list(map(lambda x: x['lc_cell_meme'], before_metadata_list))
+
+    copy_cells(notebook, 0)
+    paste_cells_below(notebook, base_index=0)
+    save_notebook(notebook)
+
+    metadata_list = get_cell_metadata_list(notebook)
+    meme_obj_list = list(map(lambda x: x['lc_cell_meme'], metadata_list))
+    assert_json(meme_obj_list, [
+        {
+            'current': before_meme_obj_list[0]['current'],
+            'previous': None,
+            'next': str,
+            'history': [
+                {
+                    'current': before_meme_obj_list[0]['current'],
+                    'previous': None,
+                    'next': None,
+                }
+            ]
+        },
+        {
             'current': str,
-            'history': list
+            'previous': before_meme_obj_list[0]['current'],
+            'next': None,
+            'history': [
+                {
+                    'current': before_meme_obj_list[0]['current'],
+                    'previous': None,
+                    'next': None,
+                }
+            ]
         }
-    })
-    meme = metadata['lc_cell_meme']['current']
-    assert meme not in current_meme_list
+    ])
 
-    base_meme = get_cell_metadata(notebook, index=base_index)['lc_cell_meme']['current']
-    assert_same_cell_meme_uuid(meme, base_meme)
-    assert_cell_meme_branch_number(meme, 3)
 
-    current_meme_list[index] = meme
-    assert_cell_meme_order(current_meme_list, get_cell_metadata_list(notebook))
+def test_lc_cell_meme_all_updated_with_different_server_signature(notebook):
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
+    save_notebook(notebook)
+    copy_cells(notebook, 1)
+    paste_cells_below(notebook, base_index=1)
+    save_notebook(notebook)
+    metadata_list = get_cell_metadata_list(notebook)
+    meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
+    branch_count_list = list(map(lambda x: parse_cell_meme(x)['branch_count'], meme_list))
+    assert branch_count_list == [0, 0, 1]
+
+    nb_metadata = get_notebook_metadata(notebook)
+    nb_metadata['lc_notebook_meme']['lc_server_signature']['current']['notebook_path'] = '/aaa/bbb'
+    set_notebook_metadata(notebook, nb_metadata)
+    save_notebook(notebook)
+
+    metadata_list = get_cell_metadata_list(notebook)
+    meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
+    branch_count_list = list(map(lambda x: parse_cell_meme(x)['branch_count'], meme_list))
+    assert branch_count_list == [1, 1, 2]

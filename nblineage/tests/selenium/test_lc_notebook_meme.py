@@ -1,4 +1,5 @@
 from .utils import *
+from .asserts import *
 
 
 def test_lc_notebook_meme_cell(prefill_notebook):

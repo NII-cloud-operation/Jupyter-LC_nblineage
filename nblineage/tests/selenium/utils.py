@@ -1,37 +1,6 @@
 from notebook.tests.selenium.utils import wait_for_selector
 
 
-NOT_IN = '___not_in___'
-
-
-def assert_json(data, expected, key=None):
-    if key is not None:
-        if expected is NOT_IN:
-            assert key not in data
-            return
-        else:
-            assert key in data
-            data = data[key]
-
-    if type(expected) is dict:
-        assert type(data) is dict
-        for k, v in expected.items():
-            assert_json(data, v, key=k)
-    elif type(expected) is list:
-        assert type(data) is list
-        assert len(data) == len(expected)
-        for i in range(len(data)):
-            assert_json(data[i], expected[i])
-    elif expected is None:
-        assert data is None
-    elif type(expected) is type:
-        assert type(data) is expected
-    elif callable(expected):
-        assert expected(data)
-    else:
-        assert data == expected
-
-
 promise_js = """
 var done = arguments[arguments.length - 1];
 %s.then(
@@ -52,6 +21,10 @@ def get_notebook_metadata(notebook):
     return notebook.browser.execute_script('return Jupyter.notebook.metadata;')
 
 
+def set_notebook_metadata(notebook, metadata):
+    notebook.browser.execute_script('Jupyter.notebook.metadata = {}'.format(metadata))
+
+
 def get_cell_metadata(notebook, index):
     return notebook.browser.execute_script('return Jupyter.notebook.get_cell({}).metadata;'.format(index))
 
@@ -69,10 +42,9 @@ def save_notebook(notebook):
     execute_promise("Jupyter.notebook.save_notebook()", notebook.browser)
 
 
-def focus_cells(notebook, index, to_index):
+def focus_cells(notebook, index, to_index=None):
     if to_index is not None:
-        # TODO: to_index
-        raise NotImplementedError()
+        notebook.select_cell_range(index, to_index)
     notebook.focus_cell(index)
 
 
@@ -86,10 +58,7 @@ def insert_cell_below(notebook, base_index, content=None):
 
 
 def copy_cells(notebook, index, to_index=None):
-    if to_index is not None:
-        # TODO: to_index
-        raise NotImplementedError()
-    notebook.focus_cell(index)
+    focus_cells(notebook, index, to_index)
     notebook.browser.find_element_by_css_selector(
         "button[data-jupyter-action='jupyter-notebook:copy-cell']"
     ).click()
@@ -123,6 +92,35 @@ def paste_cells_replace_from_menu(notebook, base_index, to_base_index=None):
     click_menu_item(notebook, 'edit_menu', 'paste_cell_replace')
 
 
+def split_cell_from_menu(notebook, index):
+    focus_cells(notebook, index)
+    click_menu_item(notebook, 'edit_menu', 'split_cell')
+
+
+def merge_cells_above_from_menu(notebook, index, to_index):
+    focus_cells(notebook, index, to_index)
+    click_menu_item(notebook, 'edit_menu', 'merge_cell_above')
+
+
+def merge_cells_below_from_menu(notebook, index, to_index):
+    focus_cells(notebook, index, to_index)
+    click_menu_item(notebook, 'edit_menu', 'merge_cell_below')
+
+
+def move_up_cells(notebook, index, to_index=None):
+    focus_cells(notebook, index, to_index)
+    notebook.browser.find_element_by_css_selector(
+        "button[data-jupyter-action='jupyter-notebook:move-cell-up']"
+    ).click()
+
+
+def move_down_cells(notebook, index, to_index=None):
+    focus_cells(notebook, index, to_index)
+    notebook.browser.find_element_by_css_selector(
+        "button[data-jupyter-action='jupyter-notebook:move-cell-down']"
+    ).click()
+
+
 def parse_cell_meme(meme):
     ids = meme.split('-')
     uuid = '-'.join(ids[:5])
@@ -138,4 +136,3 @@ def parse_cell_meme(meme):
             'branch_count': 0,
             'branch_numbers': []
         }
-
