@@ -261,6 +261,17 @@ class TestNbLineageApp(unittest.TestCase):
         self.assertIsNone(
             newnb.cells[2].metadata['lc_cell_meme']['history'][0]['next'])
 
+        self.assertEqual(1, len(newnb.metadata['lc_notebook_meme']['root_cells_history']))
+        self.assertEqual(3, len(newnb.metadata['lc_notebook_meme']['root_cells_history'][0]))
+        for i in range(3):
+            self.assertEqual(
+                newnb.metadata['lc_notebook_meme']['root_cells_history'][0][i],
+                [
+                    newnb.cells[i].metadata['lc_cell_meme']['history'][0]['current'],
+                    newnb.cells[i].metadata['lc_cell_meme']['current']
+                ]
+            )
+
     def test_new_root_meme_trim_history_0(self):
         nb = self._read_notebook('tests/notebooks/notebook.ipynb')
 
@@ -416,6 +427,17 @@ class TestNbLineageApp(unittest.TestCase):
         self.assertIsNone(
             newnb.cells[2].metadata['lc_cell_meme']['history'][0]['next'])
 
+        self.assertEqual(1, len(newnb.metadata['lc_notebook_meme']['root_cells_history']))
+        self.assertEqual(3, len(newnb.metadata['lc_notebook_meme']['root_cells_history'][0]))
+        for i in range(3):
+            self.assertEqual(
+                newnb.metadata['lc_notebook_meme']['root_cells_history'][0][i],
+                [
+                    newnb.cells[i].metadata['lc_cell_meme']['history'][0]['current'],
+                    newnb.cells[i].metadata['lc_cell_meme']['current']
+                ]
+            )
+
     def test_cli(self):
         from testpath.tempdir import TemporaryWorkingDirectory
 
@@ -459,6 +481,17 @@ class TestNbLineageApp(unittest.TestCase):
                 newnb.cells[2].metadata['lc_cell_meme']['history'][0]['previous'])
             self.assertIsNone(
                 newnb.cells[2].metadata['lc_cell_meme']['history'][0]['next'])
+
+            self.assertEqual(1, len(newnb.metadata['lc_notebook_meme']['root_cells_history']))
+            self.assertEqual(3, len(newnb.metadata['lc_notebook_meme']['root_cells_history'][0]))
+            for i in range(3):
+                self.assertEqual(
+                    newnb.metadata['lc_notebook_meme']['root_cells_history'][0][i],
+                    [
+                        newnb.cells[i].metadata['lc_cell_meme']['history'][0]['current'],
+                        newnb.cells[i].metadata['lc_cell_meme']['current']
+                    ]
+                )
 
     def test_cli_file_already_exists(self):
         from testpath.tempdir import TemporaryWorkingDirectory

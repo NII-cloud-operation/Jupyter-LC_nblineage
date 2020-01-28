@@ -126,12 +126,12 @@ class NewRootMemeGenerator(LoggingConfigurable):
         return self.from_notebook_node(nbformat.read(notebook_file_stream, as_version=4))
 
     def from_notebook_node(self, nb, copy=False):
-        orig_nb = deepcopy(nb)
-
         if copy:
             nb = notebooknode.from_dict(nb.copy())
 
         MemeGenerator().from_notebook_node(nb)
+        orig_nb = deepcopy(nb)
+
         self._update_prev_next_history(nb)
         self._update_notebook_meme(nb)
         self._update_cell_meme(nb)
@@ -229,7 +229,7 @@ class NewRootMemeGenerator(LoggingConfigurable):
                     'current' in orig_cell.metadata['lc_cell_meme']:
                 orig_meme = orig_cell.metadata['lc_cell_meme']['current']
             meme = nb.cells[i].metadata['lc_cell_meme']['current']
-            table.append((orig_meme, meme))
+            table.append([orig_meme, meme])
 
         memeobj = nb.metadata['lc_notebook_meme']
         history = get_or_create(memeobj, 'root_cells_history', lambda: list())
