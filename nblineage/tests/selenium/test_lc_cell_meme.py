@@ -350,3 +350,38 @@ def test_lc_cell_meme_all_updated_with_different_server_signature(notebook):
     meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
     branch_count_list = list(map(lambda x: parse_cell_meme(x)['branch_count'], meme_list))
     assert branch_count_list == [1, 1, 2]
+
+
+def test_lc_cell_meme_with_error_fetch_server_signature(patched_without_server_signature_api_notebook):
+    notebook = patched_without_server_signature_api_notebook
+    notebook.edit_cell(index=0, content='print()')
+    insert_cell_below(notebook, base_index=0, content='print()')
+    save_notebook(notebook)
+
+    # notebook is saved
+    # memes are generated
+    notebook.browser.refresh()
+    notebook._wait_for_start()
+    metadata = get_cell_metadata(notebook, 0)
+    assert_json(metadata, {
+        'lc_cell_meme': {
+            'current': str,
+            'history': NOT_IN
+        }
+    })
+    assert_cell_meme_branch_number(metadata['lc_cell_meme']['current'], 0)
+
+    nb_metadata = get_notebook_metadata(notebook)
+    nb_metadata['lc_notebook_meme'] = {
+        'lc_server_signature': {
+            'current': '/aaa/bbb'
+        }
+    }
+    set_notebook_metadata(notebook, nb_metadata)
+    save_notebook(notebook)
+
+    # branch number is not changed
+    notebook.browser.refresh()
+    notebook._wait_for_start()
+    metadata = get_cell_metadata(notebook, 0)
+    assert_cell_meme_branch_number(metadata['lc_cell_meme']['current'], 0)
