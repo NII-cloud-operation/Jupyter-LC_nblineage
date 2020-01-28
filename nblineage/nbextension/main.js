@@ -62,7 +62,7 @@ define([
 
             var result;
             try {
-                meme.generate_meme(Jupyter.notebook);
+                result = meme.generate_meme(Jupyter.notebook);
             } catch (e) {
                 notification_area.danger('[nblineage] Failed to generate meme', undefined, undefined, {
                     title: e.message
