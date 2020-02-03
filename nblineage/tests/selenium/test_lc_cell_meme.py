@@ -320,13 +320,16 @@ def test_lc_cell_meme_history_and_order_with_branch_number(notebook):
             'next': None,
             'history': [
                 {
-                    'current': before_meme_obj_list[0]['current'],
+                    'current': str,
                     'previous': None,
                     'next': None,
                 }
             ]
         }
     ])
+    assert parse_cell_meme(meme_obj_list[1]['current'])['uuid'] == before_meme_obj_list[0]['current']
+    assert parse_cell_meme(meme_obj_list[1]['current'])['branch_count'] == 1
+    assert meme_obj_list[1]['history'][0]['current'] == meme_obj_list[1]['current']
 
 
 def test_lc_cell_meme_all_updated_with_different_server_signature(notebook):

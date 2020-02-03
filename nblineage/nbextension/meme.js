@@ -51,10 +51,7 @@ define([
         if(!memeobj) {
             memeobj = cell.metadata['lc_cell_meme'] = {}
         }
-        if(memeobj['_new_current']) {
-            memeobj['current'] = memeobj['_new_current'];
-            delete memeobj['_new_current'];
-        } else if(!memeobj['current']) {
+        if(!memeobj['current']) {
             if(uuids) {
                 if (uuids.length <= 0) {
                     throw new Error('[nblineage] too few generated UUIDs');
@@ -117,14 +114,11 @@ define([
         var next_meme = memeobj['next'];
         var prev_memeobj = prev_cell ? prev_cell.metadata['lc_cell_meme'] : null;
         var next_memeobj = next_cell ? next_cell.metadata['lc_cell_meme'] : null;
-        var current_meme = memeobj['current'];
-        var new_current_meme = memeobj['_new_current'];
 
         if ((prev_memeobj && prev_memeobj['current'] != prev_meme)
             || (prev_cell && !prev_memeobj)
             || (next_memeobj && next_memeobj['current'] != next_meme)
-            || (next_cell && !next_memeobj)
-            || (new_current_meme && current_meme != new_current_meme)) {
+            || (next_cell && !next_memeobj)) {
             var history = memeobj['history'];
             if (!history) {
                 history = memeobj['history'] = [];
@@ -201,7 +195,7 @@ define([
         if (!meme) {
             return;
         }
-        memeobj['_new_current'] = add_branch_number(meme);
+        memeobj['current'] = add_branch_number(meme);
     }
 
     function generate_branch_number_all(notebook) {
