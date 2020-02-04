@@ -150,24 +150,20 @@ define([
     }
 
     function create_branch_number() {
-        var num = Math.random() * 0xffff;
-        return ('000' + Math.floor(num).toString(16)).slice(-4);
+        const num = Math.random() * 0xffff;
+        return Math.floor(num).toString(16).padStart(4, '0');
     }
 
     function parse_cell_meme(meme) {
-        var ids = meme.split('-');
-        var uuid = ids.slice(0, 5).join('-');
-        var branch_count = ids.slice(5, 6);
-        var branch_numbers = ids.slice(6);
-        return {
-            uuid: uuid,
-            branch_count: branch_count || 0,
-            branch_numbers: branch_numbers
-        };
+        const ids = meme.split('-');
+        const uuid = ids.slice(0, 5).join('-');
+        const branch_count = ids.slice(5, 6) || 0;
+        const branch_numbers = ids.slice(6);
+        return {uuid, branch_count, branch_numbers};
     }
 
     function combine_cell_meme(parts) {
-        var meme = parts.uuid;
+        let meme = parts.uuid;
         if (parts.branch_count > 0) {
             meme += '-' + parts.branch_count;
             meme += '-' + parts.branch_numbers.join('-');
@@ -176,8 +172,8 @@ define([
     }
 
     function add_branch_number(meme) {
-        var parts = parse_cell_meme(meme);
-        var new_branch = create_branch_number();
+        const parts = parse_cell_meme(meme);
+        const new_branch = create_branch_number();
         parts.branch_numbers.push(new_branch);
         if (parts.branch_numbers.length > 10) {
             parts.branch_numbers.shift();
@@ -187,11 +183,11 @@ define([
     }
 
     function generate_branch_number(cell) {
-        var memeobj = cell.metadata['lc_cell_meme'];
+        const memeobj = cell.metadata['lc_cell_meme'];
         if (!memeobj) {
             return;
         }
-        var meme = memeobj['current'];
+        const meme = memeobj['current'];
         if (!meme) {
             return;
         }
@@ -199,9 +195,9 @@ define([
     }
 
     function generate_branch_number_all(notebook) {
-        var cells = notebook.get_cells();
-        for (var i=0; i<cells.length; ++i) {
-            generate_branch_number(cells[i]);
+        const cells = notebook.get_cells();
+        for (const cell of cells) {
+            generate_branch_number(cell);
         }
     }
 

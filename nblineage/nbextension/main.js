@@ -8,7 +8,7 @@ define([
 ], function($, Jupyter, events, codecell, meme, tracking_server) {
     'use strict';
 
-    var notification_area = Jupyter.notification_area.widget('nblineage');
+    const notification_area = Jupyter.notification_area.widget('nblineage');
 
     function patch_CodeCell_get_callbacks() {
         console.log('[nblineage] patching CodeCell.prototype.get_callbacks');
@@ -46,8 +46,8 @@ define([
 
     function load_extension() {
         events.on('before_save.Notebook', function(event, data) {
-            var notebook = Jupyter.notebook;
-            var is_changed_server_signature = false;
+            const notebook = Jupyter.notebook;
+            let is_changed_server_signature = false;
             try {
                 is_changed_server_signature = tracking_server.track_server(notebook);
             } catch (e) {
@@ -60,7 +60,7 @@ define([
                 meme.generate_branch_number_all(Jupyter.notebook);
             }
 
-            var result;
+            let result;
             try {
                 result = meme.generate_meme(Jupyter.notebook);
             } catch (e) {
