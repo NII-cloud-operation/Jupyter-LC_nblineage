@@ -12,8 +12,6 @@ import nblineage
 import nblineage.extensionapp
 import nblineage.meme as meme
 
-# TODO: test root cells history
-
 class TestNbLineageApp(unittest.TestCase):
 
     @classmethod
