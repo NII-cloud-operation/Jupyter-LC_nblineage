@@ -51,10 +51,10 @@ define([
             try {
                 is_changed_server_signature = tracking_server.track_server(notebook);
             } catch (e) {
-                notification_area.danger('[nblineage] Failed to track server', undefined, undefined, {
+                notification_area.danger('[nblineage] Server error', undefined, undefined, {
                     title: e.message
                 });
-                console.error(e);
+                console.error('[nblineage]', e);
             }
             if (is_changed_server_signature) {
                 meme.generate_branch_number_all(Jupyter.notebook);
@@ -64,10 +64,10 @@ define([
             try {
                 result = meme.generate_meme(Jupyter.notebook);
             } catch (e) {
-                notification_area.danger('[nblineage] Failed to generate meme', undefined, undefined, {
+                notification_area.danger('[nblineage] Server error', undefined, undefined, {
                     title: e.message
                 });
-                console.error(e);
+                console.error('[nblineage]', e);
             }
             if (result) {
                 console.log('[nblineage] Generated meme: path=%s, cell_history_count=%d, meme_count=%d',
