@@ -225,8 +225,8 @@ class NewRootMemeGenerator(LoggingConfigurable):
         for i in range(len(nb.cells)):
             orig_cell = orig_nb.cells[i]
             orig_meme = None
-            if 'lc_cell_meme' in orig_cell.metadata and \
-                    'current' in orig_cell.metadata['lc_cell_meme']:
+            if ('lc_cell_meme' in orig_cell.metadata and
+                'current' in orig_cell.metadata["lc_cell_meme"]):
                 orig_meme = orig_cell.metadata['lc_cell_meme']['current']
             meme = nb.cells[i].metadata['lc_cell_meme']['current']
             table.append([orig_meme, meme])
