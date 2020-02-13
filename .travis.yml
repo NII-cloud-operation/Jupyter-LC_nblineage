@@ -1,0 +1,41 @@
+# http://travis-ci.org/#!/ipython/ipython
+language: python
+
+cache:
+  directories:
+    - $HOME/.cache/bower
+    - $HOME/.cache/pip
+python:
+  - 3.7
+
+env:
+  global:
+    - JUPYTER_TEST_BROWSER=firefox
+    - MOZ_HEADLESS=1
+addons:
+  firefox: 72.0.2
+
+before_install:
+  - pip install --upgrade pip
+  - pip install --upgrade setuptools wheel nose
+  - pip install --upgrade selenium pytest
+  - nvm install 12.14.1
+  - nvm use 12.14.1
+  - node --version
+  - npm --version
+  - npm upgrade -g npm
+  - npm install
+  - wget https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz
+  - mkdir geckodriver
+  - tar -xzf geckodriver-v0.26.0-linux64.tar.gz -C geckodriver
+  - export PATH=$PATH:$PWD/geckodriver
+  - git clone https://github.com/jupyter/notebook.git
+  - cd notebook && pip install --pre .[test] && cd ..
+
+
+install:
+  - pip install .
+
+
+script:
+  - py.test -sv nblineage/tests

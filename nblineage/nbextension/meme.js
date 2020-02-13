@@ -30,7 +30,7 @@ define([
         if (!memeobj['current']) {
             if(uuids) {
                 if (uuids.length <= 0) {
-                    throw "too few generated UUIDs"
+                    throw new Error('too few generated UUIDs');
                 }
                 memeobj['current'] = uuids.shift();
             }
@@ -54,7 +54,7 @@ define([
         if(!memeobj['current']) {
             if(uuids) {
                 if (uuids.length <= 0) {
-                    throw "too few generated UUIDs"
+                    throw new Error('too few generated UUIDs');
                 }
                 memeobj['current'] = uuids.shift()
             }
@@ -138,8 +138,7 @@ define([
         var meme_count = generate_notebook_meme(notebook, null);
         var uuids = generate_uuid(meme_count);
         if (!uuids) {
-            console.error('Failed to get UUIDs from server');
-            return;
+            throw new Error('Failed to get UUIDs from server');
         }
         meme_count = generate_notebook_meme(notebook, uuids);
         update_prev_next_meme(notebook);
@@ -150,8 +149,62 @@ define([
         }
     }
 
+    function create_branch_number() {
+        const num = Math.random() * 0xffff;
+        return Math.floor(num).toString(16).padStart(4, '0');
+    }
+
+    function parse_cell_meme(meme) {
+        const ids = meme.split('-');
+        const uuid = ids.slice(0, 5).join('-');
+        const branch_count = ids.slice(5, 6) || 0;
+        const branch_numbers = ids.slice(6);
+        return {uuid, branch_count, branch_numbers};
+    }
+
+    function combine_cell_meme(parts) {
+        let meme = parts.uuid;
+        if (parts.branch_count > 0) {
+            meme += '-' + parts.branch_count;
+            meme += '-' + parts.branch_numbers.join('-');
+        }
+        return meme;
+    }
+
+    function add_branch_number(meme) {
+        const parts = parse_cell_meme(meme);
+        const new_branch = create_branch_number();
+        parts.branch_numbers.push(new_branch);
+        if (parts.branch_numbers.length > 10) {
+            parts.branch_numbers.shift();
+        }
+        ++parts.branch_count;
+        return combine_cell_meme(parts);
+    }
+
+    function generate_branch_number(cell) {
+        const memeobj = cell.metadata['lc_cell_meme'];
+        if (!memeobj) {
+            return;
+        }
+        const meme = memeobj['current'];
+        if (!meme) {
+            return;
+        }
+        memeobj['current'] = add_branch_number(meme);
+    }
+
+    function generate_branch_number_all(notebook) {
+        const cells = notebook.get_cells();
+        for (const cell of cells) {
+            generate_branch_number(cell);
+        }
+    }
+
     return {
         generate_uuid: generate_uuid,
         generate_meme: generate_meme,
+        generate_branch_number: generate_branch_number,
+        generate_branch_number_all: generate_branch_number_all
     };
 })

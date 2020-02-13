@@ -106,6 +106,7 @@ class NewRootMemeApp(Application):
             sys.exit(-1)
 
         nb = self.newroot_gen.from_filename(src)
+        print('\n'.join(map(lambda xs: '\t'.join(xs), self.newroot_gen.new_cells_history)))
 
         with io.open(dest, 'w', encoding='utf-8') as f:
             nbformat.write(nb, f)
