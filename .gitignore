@@ -3,3 +3,5 @@
 *.egg-info
 *.pyc
 .ipynb_checkpoints
+.python-version
+geckodriver*
