@@ -1,3 +1,5 @@
+from nbformat.v4 import new_code_cell
+
 from .utils import *
 from .asserts import *
 
@@ -10,6 +12,20 @@ def test_lc_cell_meme_initialized(prefill_notebook):
     for metadata in metadata_list:
         assert_json(metadata, {
             'lc_cell_meme': NOT_IN
+        })
+
+
+def test_lc_cell_meme_initialized_cells_with_meme(prefill_notebook):
+    initial_codes = ['print("{}")'.format(i) for i in range(500)]
+    initial_cells = [new_code_cell(c) for c in initial_codes]
+    for cell in initial_cells:
+        cell['metadata']['lc_cell_meme'] = {'current': '0825aaee-48b9-11ea-9b81-0242ac120002'}
+    notebook = prefill_notebook(initial_cells)
+
+    metadata_list = get_cell_metadata_list(notebook)
+    for metadata in metadata_list:
+        assert_json(metadata, {
+            'lc_cell_meme': {'current': '0825aaee-48b9-11ea-9b81-0242ac120002'}
         })
 
 
