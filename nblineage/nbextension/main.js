@@ -44,6 +44,17 @@ define([
         };
     }
 
+    function init_handler() {
+        console.log('[nblineage] initializing create.Cell handler');
+        events.on('create.Cell', function (e, data) {
+            setTimeout(function() {
+                if (data.cell.metadata['lc_cell_meme']) {
+                    meme.generate_branch_number(data.cell);
+                }
+            }, 0);
+        });
+    }
+
     function load_extension() {
         events.on('before_save.Notebook', function(event, data) {
             const notebook = Jupyter.notebook;
@@ -77,13 +88,10 @@ define([
             }
         });
 
-        events.on('create.Cell', function (e, data) {
-            setTimeout(function() {
-                if (data.cell.metadata['lc_cell_meme']) {
-                    meme.generate_branch_number(data.cell);
-                }
-            }, 0);
-        });
+        events.on("notebook_loaded.Notebook", init_handler);
+        if (Jupyter.notebook !== undefined && Jupyter.notebook._fully_loaded) {
+            init_handler();
+        }
 
         tracking_server.init_server_env();
 
