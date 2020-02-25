@@ -17,8 +17,8 @@ addons:
 
 before_install:
   - pip install --upgrade pip
-  - pip install --upgrade setuptools wheel nose
-  - pip install --upgrade selenium pytest
+  - pip install --upgrade setuptools wheel
+  - pip install --upgrade -r devRequirements.txt
   - nvm install 12.14.1
   - nvm use 12.14.1
   - node --version
