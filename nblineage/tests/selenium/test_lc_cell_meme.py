@@ -315,16 +315,16 @@ def test_lc_cell_meme_copy_multiple_times_from_same_cell(notebook):
     metadata_list = get_cell_metadata_list(notebook)
     current_meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
     for i in range(10):
-        assert_cell_meme_branch_number(current_meme_list[i + 1], 0)
+        assert_cell_meme_branch_number(current_meme_list[i + 1], 1)
         before_meme = parse_cell_meme(current_meme_list[i])
         current_meme = parse_cell_meme(current_meme_list[i + 1])
         assert current_meme['uuid'] == before_meme['uuid']
-        assert before_meme['current'] != before_meme['current']
+        assert current_meme['branch_numbers'] != before_meme['branch_numbers']
         assert metadata_list[i + 1]['lc_cell_meme']['previous'] == current_meme_list[i]
         if i < 9:
             next_meme = parse_cell_meme(current_meme_list[i + 2])
             assert current_meme['uuid'] == next_meme['uuid']
-            assert before_meme['current'] != next_meme['current']
+            assert before_meme['branch_numbers'] != next_meme['branch_numbers']
             assert metadata_list[i + 1]['lc_cell_meme']['next'] == current_meme_list[i + 2]
 
 
