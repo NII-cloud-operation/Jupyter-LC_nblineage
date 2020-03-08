@@ -23,9 +23,10 @@ define([
 
     function generate_notebook_meme(notebook, uuids) {
         var counter = 0;
-        var memeobj = notebook.metadata['lc_notebook_meme'];
+        const new_metadata = $.extend(true, {}, notebook.metadata);
+        let memeobj = new_metadata['lc_notebook_meme'];
         if (!memeobj) {
-            memeobj = notebook.metadata['lc_notebook_meme'] = {};
+            memeobj = new_metadata['lc_notebook_meme'] = {};
         }
         if (!memeobj['current']) {
             if(uuids) {
@@ -36,10 +37,10 @@ define([
             }
             counter++;
         }
+        notebook.metadata = new_metadata;
 
         var cells = notebook.get_cells()
         for (var i=0; i<cells.length; ++i) {
-            var cell = cells[i]
             counter += generate_cell_meme(cells[i], uuids)
         }
         return counter;
@@ -47,9 +48,10 @@ define([
 
     function generate_cell_meme(cell, uuids) {
         var counter = 0;
-        var memeobj = cell.metadata['lc_cell_meme'];
+        const new_metadata = $.extend(true, {}, cell.metadata);
+        let memeobj = new_metadata['lc_cell_meme'];
         if(!memeobj) {
-            memeobj = cell.metadata['lc_cell_meme'] = {}
+            memeobj = new_metadata['lc_cell_meme'] = {}
         }
         if(!memeobj['current']) {
             if(uuids) {
@@ -57,43 +59,40 @@ define([
                     throw new Error('too few generated UUIDs');
                 }
                 memeobj['current'] = uuids.shift()
+                cell.metadata = new_metadata;
             }
             counter++;
         }
         return counter;
     }
 
-    function update_prev_next_meme(notebook)
-    {
+    function update_prev_next_meme(notebook) {
         var cells = notebook.get_cells()
         for (var i=0; i<cells.length; ++i) {
-            var cell = cells[i]
             var prev_cell = i > 0 ? cells[i-1] : null;
             var next_cell = i <　cells.length-1 ? cells[i+1] : null;
-            update_prev_next_cell_meme(cell, prev_cell, next_cell)
+            update_prev_next_cell_meme(cells[i], prev_cell, next_cell);
         }
     }
 
-    function update_prev_next_cell_meme(cell, prev_cell, next_cell)
-    {
-        var memeobj = cell.metadata['lc_cell_meme'];
+    function update_prev_next_cell_meme(cell, prev_cell, next_cell) {
+        const new_metadata = $.extend(true, {}, cell.metadata);
+        let memeobj = new_metadata['lc_cell_meme'];
         if(!memeobj) {
-            memeobj = cell.metadata['lc_cell_meme'] = {}
+            memeobj = new_metadata['lc_cell_meme'] = {}
         }
         memeobj['previous'] = prev_cell ? prev_cell.metadata['lc_cell_meme']['current'] : null;
         memeobj['next']     = next_cell ? next_cell.metadata['lc_cell_meme']['current'] : null;
+        cell.metadata = new_metadata;
     }
 
-    function update_prev_next_history(notebook)
-    {
+    function update_prev_next_history(notebook) {
         var counter = 0;
-        var cells = notebook.get_cells();
+        const cells = notebook.get_cells();
         for (var i=0; i<cells.length; ++i) {
-            var cell = cells[i];
             var prev_cell = i > 0 ? cells[i-1] : null;
             var next_cell = i <　cells.length-1 ? cells[i+1] : null;
-
-            counter += update_prev_next_cell_history(cell, prev_cell, next_cell);
+            counter += update_prev_next_cell_history(cells[i], prev_cell, next_cell);
         }
         return counter;
     }
@@ -119,6 +118,8 @@ define([
             || (prev_cell && !prev_memeobj)
             || (next_memeobj && next_memeobj['current'] != next_meme)
             || (next_cell && !next_memeobj)) {
+            const new_metadata = $.extend(true, {}, cell.metadata);
+            memeobj = new_metadata['lc_cell_meme'];
             var history = memeobj['history'];
             if (!history) {
                 history = memeobj['history'] = [];
@@ -128,6 +129,7 @@ define([
                 'previous': memeobj['previous'],
                 'next': memeobj['next']
             });
+            cell.metadata = new_metadata;
             return 1;
         }
         return 0;
@@ -183,15 +185,12 @@ define([
     }
 
     function generate_branch_number(cell) {
-        const memeobj = cell.metadata['lc_cell_meme'];
-        if (!memeobj) {
+        if (!cell.metadata['lc_cell_meme'] || !cell.metadata['lc_cell_meme']['current']) {
             return;
         }
-        const meme = memeobj['current'];
-        if (!meme) {
-            return;
-        }
-        memeobj['current'] = add_branch_number(meme);
+        const new_memeobj = $.extend(true, {}, cell.metadata);
+        new_memeobj['lc_cell_meme']['current'] = add_branch_number(new_memeobj['lc_cell_meme']['current']);
+        cell.metadata = new_memeobj;
     }
 
     function generate_branch_number_all(notebook) {
