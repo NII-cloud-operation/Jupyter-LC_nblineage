@@ -33,6 +33,12 @@ def get_cell_metadata_list(notebook):
     return notebook.browser.execute_script('return Jupyter.notebook.get_cells().map(function(c) {return c.metadata;});')
 
 
+def get_cell_current_meme_from_attr(notebook):
+    return notebook.browser.execute_script(
+        'return Jupyter.notebook.get_cells().map(function(c) {return c.element.attr("data-nblineage-meme");});'
+    )
+
+
 def execute_cell(notebook, index):
     notebook.browser.execute_script('Jupyter.notebook.get_cell({}).execute();'.format(index))
     notebook.wait_for_cell_output(index)
