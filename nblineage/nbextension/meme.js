@@ -4,6 +4,8 @@ define([
 ], function($, Jupyter) {
     'use strict';
 
+    const CELL_MEME_ATTR_KEY = 'data-nblineage-meme';
+
     function generate_uuid(count) {
         if (count == 0) {
             return [];
@@ -60,6 +62,7 @@ define([
                 }
                 memeobj['current'] = uuids.shift()
                 cell.metadata = new_metadata;
+                update_cell_elem_attr(cell);
             }
             counter++;
         }
@@ -191,6 +194,7 @@ define([
         const new_memeobj = $.extend(true, {}, cell.metadata);
         new_memeobj['lc_cell_meme']['current'] = add_branch_number(new_memeobj['lc_cell_meme']['current']);
         cell.metadata = new_memeobj;
+        update_cell_elem_attr(cell);
     }
 
     function generate_branch_number_all(notebook) {
@@ -200,10 +204,16 @@ define([
         }
     }
 
+    function update_cell_elem_attr(cell) {
+        const current = cell.metadata['lc_cell_meme'] && cell.metadata['lc_cell_meme']['current'] || '';
+        cell.element.attr(CELL_MEME_ATTR_KEY, current);
+    }
+
     return {
         generate_uuid: generate_uuid,
         generate_meme: generate_meme,
         generate_branch_number: generate_branch_number,
-        generate_branch_number_all: generate_branch_number_all
+        generate_branch_number_all: generate_branch_number_all,
+        update_cell_elem_attr: update_cell_elem_attr
     };
 })

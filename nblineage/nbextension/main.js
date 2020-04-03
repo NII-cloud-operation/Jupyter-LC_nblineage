@@ -57,6 +57,14 @@ define([
         });
     }
 
+    function init_cells_elem_attr() {
+        console.log('[nblineage] initializing cell element attributes');
+        const cells = Jupyter.notebook.get_cells();
+        for (const cell of cells) {
+            meme.update_cell_elem_attr(cell);
+        }
+    }
+
     function load_extension() {
         events.on('before_save.Notebook', function(event, data) {
             const notebook = Jupyter.notebook;
@@ -93,6 +101,7 @@ define([
         events.on("notebook_loaded.Notebook", init_handler);
         if (Jupyter.notebook !== undefined && Jupyter.notebook._fully_loaded) {
             init_handler();
+            init_cells_elem_attr();
         }
 
         tracking_server.init_server_env();

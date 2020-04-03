@@ -27,6 +27,7 @@ def test_lc_cell_meme_initialized_cells_with_meme(prefill_notebook):
         assert_json(metadata, {
             'lc_cell_meme': {'current': '0825aaee-48b9-11ea-9b81-0242ac120002'}
         })
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_execution_end_time(prefill_notebook):
@@ -58,6 +59,7 @@ def test_lc_cell_meme_first(notebook):
     })
     meme = metadata['lc_cell_meme']['current']
     assert_cell_meme_branch_number(meme, 0)
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_order(notebook):
@@ -83,6 +85,7 @@ def test_lc_cell_meme_order(notebook):
             'next': None
         }
     ])
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_history(notebook):
@@ -126,6 +129,8 @@ def test_lc_cell_meme_history(notebook):
                 'previous': meme_obj['previous'],
             })
 
+    validate_cell_current_attr(notebook)
+
 
 def test_lc_cell_meme_unique1(notebook):
     notebook.edit_cell(index=0, content='print()')
@@ -138,6 +143,7 @@ def test_lc_cell_meme_unique1(notebook):
     assert is_unique_list(current_meme_list)
     current_meme_uuid_list = map(lambda x: parse_cell_meme(x)['uuid'], current_meme_list)
     assert is_unique_list(current_meme_uuid_list)
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_unique2(notebook):
@@ -152,6 +158,7 @@ def test_lc_cell_meme_unique2(notebook):
     assert is_unique_list(current_meme_list)
     current_meme_uuid_list = map(lambda x: parse_cell_meme(x)['uuid'], current_meme_list)
     assert is_unique_list(current_meme_uuid_list)
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_copy_below(notebook):
@@ -172,6 +179,7 @@ def test_lc_cell_meme_copy_below(notebook):
     assert not is_same_cell_meme_uuid(current_meme_list[2], current_meme_list[0])
     assert_cell_meme_branch_number(current_meme_list[1], 0)
     assert_cell_meme_branch_number(current_meme_list[2], 1)
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_copy_below_from_menu(notebook):
@@ -189,6 +197,7 @@ def test_lc_cell_meme_copy_below_from_menu(notebook):
     assert not is_same_cell_meme_uuid(current_meme_list[2], current_meme_list[0])
     assert_cell_meme_branch_number(current_meme_list[1], 0)
     assert_cell_meme_branch_number(current_meme_list[2], 1)
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_copy_above_from_menu(notebook):
@@ -206,6 +215,7 @@ def test_lc_cell_meme_copy_above_from_menu(notebook):
     assert not is_same_cell_meme_uuid(current_meme_list[1], current_meme_list[0])
     assert_cell_meme_branch_number(current_meme_list[2], 0)
     assert_cell_meme_branch_number(current_meme_list[1], 1)
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_copy_replace_from_menu(notebook):
@@ -222,6 +232,7 @@ def test_lc_cell_meme_copy_replace_from_menu(notebook):
     assert is_same_cell_meme_uuid(current_meme_list[1], current_meme_list[0])
     assert_cell_meme_branch_number(current_meme_list[0], 0)
     assert_cell_meme_branch_number(current_meme_list[1], 1)
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_split_cell_from_menu(notebook):
@@ -239,6 +250,7 @@ def test_lc_cell_meme_split_cell_from_menu(notebook):
     assert not is_same_cell_meme_uuid(current_meme_list[1], current_meme_list[0])
     assert_cell_meme_branch_number(current_meme_list[2], 0)
     assert_cell_meme_branch_number(current_meme_list[1], 1)
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_merge_cells_above_from_menu(notebook):
@@ -251,6 +263,7 @@ def test_lc_cell_meme_merge_cells_above_from_menu(notebook):
 
     metadata = get_cell_metadata(notebook, 0)
     assert_cell_meme_branch_number(metadata['lc_cell_meme']['current'], 0)
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_merge_cells_below_from_menu(notebook):
@@ -263,6 +276,7 @@ def test_lc_cell_meme_merge_cells_below_from_menu(notebook):
 
     metadata = get_cell_metadata(notebook, 0)
     assert_cell_meme_branch_number(metadata['lc_cell_meme']['current'], 0)
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_copy_multiple_times(notebook):
@@ -281,6 +295,8 @@ def test_lc_cell_meme_copy_multiple_times(notebook):
         before_meme = parse_cell_meme(current_meme_list[i])
         current_meme = parse_cell_meme(current_meme_list[i + 1])
         assert current_meme['branch_numbers'][:-1] == before_meme['branch_numbers']
+
+    validate_cell_current_attr(notebook)
 
 
 def test_lc_cell_meme_copy_multiple_times_from_same_cell_before_save(notebook):

@@ -1,4 +1,4 @@
-from .utils import parse_cell_meme
+from .utils import *
 
 
 NOT_IN = '___not_in___'
@@ -61,3 +61,12 @@ def is_same_cell_meme_uuid(meme1, meme2):
 def is_unique_list(data):
     data = list(data)
     return len(set(data)) == len(data)
+
+
+def validate_cell_current_attr(notebook):
+    metadata_list = get_cell_metadata_list(notebook)
+    current_meme_list = list(map(lambda x: x['lc_cell_meme']['current'], metadata_list))
+    current_meme_list_from_attr = get_cell_current_meme_from_attr(notebook)
+    assert len(current_meme_list) == len(current_meme_list_from_attr)
+    for i in range(len(current_meme_list)):
+        assert current_meme_list[i] == current_meme_list_from_attr[i]
