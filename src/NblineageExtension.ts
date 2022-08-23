@@ -5,10 +5,13 @@ import { IDisposable } from '@lumino/disposable';
 import { ICodeCellModel, isCodeCellModel } from '@jupyterlab/cells';
 import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import {
-  CellMEME, isCellMEME, generateBranchNumber, generateBranchNumberAll, generateMEME,
+  ICellMEME,
+  isCellMEME,
+  generateBranchNumber,
+  generateBranchNumberAll,
+  generateMEME
 } from './Meme';
 import { TrackingServer } from './TrackingServer';
-
 
 function getCellByModelId(notebook: Notebook, cellModelId: string) {
   return notebook.widgets.find(c => c.model.id === cellModelId);
@@ -38,7 +41,7 @@ export class NblineageExtension
         .then(() => {
           this.initMEMEGenerator(panel);
         })
-        .catch((error) => {
+        .catch(error => {
           /*notification_area.danger('[nblineage] Server error', undefined, undefined, {
             title: e.message
           });*/
@@ -47,7 +50,7 @@ export class NblineageExtension
     });
   }
 
-  initBranchUpdater(panel: NotebookPanel) {
+  initBranchUpdater(panel: NotebookPanel): void {
     panel.content.model?.cells.changed.connect((_, change) => {
       if (change.type === 'add') {
         change.newValues.forEach(cellModel => {
@@ -61,19 +64,21 @@ export class NblineageExtension
     });
   }
 
-  initMEMEGenerator(panel: NotebookPanel) {
+  initMEMEGenerator(panel: NotebookPanel): void {
     panel.content.model?.cells.changed.connect((_, change) => {
       if (!panel.content.model) {
         return;
       }
       generateMEME(panel.content.model)
-        .then((result) => {
-          console.log('[nblineage] Generated meme: path=%s, cell_history_count=%d, meme_count=%d',
-              panel.title,
-              result.cell_history_count,
-              result.meme_count);
+        .then(result => {
+          console.log(
+            '[nblineage] Generated meme: path=%s, cell_history_count=%d, meme_count=%d',
+            panel.title,
+            result.cell_history_count,
+            result.meme_count
+          );
         })
-        .catch((error) => {
+        .catch(error => {
           /*notification_area.danger('[nblineage] Server error', undefined, undefined, {
             title: e.message
           });*/
@@ -82,7 +87,7 @@ export class NblineageExtension
     });
   }
 
-  initExecutionEndTimeUpdater(panel: NotebookPanel) {
+  initExecutionEndTimeUpdater(panel: NotebookPanel): void {
     panel.content.model?.cells.changed.connect((_, change) => {
       if (change.type === 'add') {
         change.newValues.forEach(cellModel => {
@@ -96,15 +101,15 @@ export class NblineageExtension
     });
   }
 
-  connectExecutionEndTimeUpdater(codeCell: ICodeCellModel) {
+  connectExecutionEndTimeUpdater(codeCell: ICodeCellModel): void {
     codeCell.outputs.changed.connect((_, changed) => {
       if (changed.type === 'add') {
         // Executed
         const meme = codeCell.metadata.get('lc_cell_meme') || {};
-        const time = new Date().toISOString()
+        const time = new Date().toISOString();
         const newMeme = Object.assign(meme, {
-          execution_end_time: time,
-        })
+          execution_end_time: time
+        });
         codeCell.metadata.set('lc_cell_meme', newMeme);
       } else if (changed.type === 'remove' && codeCell.outputs.length === 0) {
         // Clear Outputs
@@ -112,25 +117,31 @@ export class NblineageExtension
         if (!isCellMEME(meme)) {
           return;
         }
-        const newMeme = meme as CellMEME;
+        const newMeme = meme as ICellMEME;
         delete newMeme.execution_end_time;
-        codeCell.metadata.set('lc_cell_meme', newMeme as ReadonlyPartialJSONObject);
+        codeCell.metadata.set(
+          'lc_cell_meme',
+          newMeme as ReadonlyPartialJSONObject
+        );
       }
     });
   }
 
-  async addBranchNumbers(panel: NotebookPanel) {
+  async addBranchNumbers(panel: NotebookPanel): Promise<void> {
     if (!panel.model) {
       return;
     }
     let is_changed_server_signature = false;
     try {
-        is_changed_server_signature = await this.trackingServer.trackServer(panel, panel.model);
+      is_changed_server_signature = await this.trackingServer.trackServer(
+        panel,
+        panel.model
+      );
     } catch (e) {
-        /*notification_area.danger('[nblineage] Server error', undefined, undefined, {
+      /*notification_area.danger('[nblineage] Server error', undefined, undefined, {
             title: e.message
         });*/
-        console.error('[nblineage]', e);
+      console.error('[nblineage]', e);
     }
     if (!is_changed_server_signature) {
       return;

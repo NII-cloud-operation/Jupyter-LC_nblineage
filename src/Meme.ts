@@ -1,53 +1,63 @@
-import { ICellModel } from "@jupyterlab/cells";
+import { ICellModel } from '@jupyterlab/cells';
 import { URLExt } from '@jupyterlab/coreutils';
-import { INotebookModel } from "@jupyterlab/notebook";
+import { INotebookModel } from '@jupyterlab/notebook';
 import { ServerConnection } from '@jupyterlab/services';
-import { ReadonlyPartialJSONObject, ReadonlyPartialJSONValue } from '@lumino/coreutils';
+import {
+  ReadonlyPartialJSONObject,
+  ReadonlyPartialJSONValue
+} from '@lumino/coreutils';
 
 //const CELL_MEME_ATTR_KEY = 'data-nblineage-meme';
 
-interface MEME {
+interface IMEME {
   uuid: string;
   branch_count: number;
   branch_numbers: string[];
 }
 
-interface MEMEHistory {
+interface IMEMEHistory {
   current?: string;
   previous?: string;
   next?: string;
 }
 
-export interface CellMEME {
+export interface ICellMEME {
   execution_end_time?: string;
   current?: string;
   previous?: string;
   next?: string;
-  history?: MEMEHistory[];
+  history?: IMEMEHistory[];
 }
 
-export interface ServerSignatureRecord {
+export interface IServerSignatureRecord {
   notebook_dir?: string;
   notebook_path?: string;
   server_url?: string;
   signature_id?: string;
 }
 
-export interface ServerSignature {
-  current?: ServerSignatureRecord;
-  history?: ServerSignatureRecord[];
+export interface IServerSignature {
+  current?: IServerSignatureRecord;
+  history?: IServerSignatureRecord[];
 }
 
-export interface NotebookMEME {
+export interface INotebookMEME {
   current?: string;
-  lc_server_signature?: ServerSignature;
+  lc_server_signature?: IServerSignature;
 }
 
-interface UUIDResult {
+interface IUUIDResult {
   uuid: string[];
 }
 
-export function isNotebookMEME(meme: ReadonlyPartialJSONValue | undefined | null) {
+interface IGeneratedMEME {
+  meme_count: number;
+  cell_history_count: number;
+}
+
+export function isNotebookMEME(
+  meme: ReadonlyPartialJSONValue | undefined | null
+): boolean {
   if (!meme) {
     return false;
   }
@@ -57,7 +67,9 @@ export function isNotebookMEME(meme: ReadonlyPartialJSONValue | undefined | null
   return 'current' in meme || 'lc_server_signature' in meme;
 }
 
-export function isCellMEME(meme: ReadonlyPartialJSONValue | undefined | null) {
+export function isCellMEME(
+  meme: ReadonlyPartialJSONValue | undefined | null
+): boolean {
   if (!meme) {
     return false;
   }
@@ -67,7 +79,7 @@ export function isCellMEME(meme: ReadonlyPartialJSONValue | undefined | null) {
   return 'current' in meme || 'execution_end_time' in meme;
 }
 
-export async function generateUUID(count: number) {
+export async function generateUUID(count: number): Promise<string[]> {
   if (count === 0) {
     return [];
   }
@@ -75,7 +87,7 @@ export async function generateUUID(count: number) {
   const requestUrl = URLExt.join(
     settings.baseUrl,
     'nblineage', // API Namespace
-    'uuid/v1/' + count,
+    'uuid/v1/' + count
   );
   let response: Response;
   try {
@@ -83,67 +95,84 @@ export async function generateUUID(count: number) {
   } catch (error) {
     throw new ServerConnection.NetworkError(error as any);
   }
-  const data: UUIDResult = await response.json();
+  const data: IUUIDResult = await response.json();
   return data.uuid;
 }
 
-function generateNotebookMEME(notebook: INotebookModel, uuids: string[] | null) {
-    let counter = 0;
-    const memeobj = notebook.metadata.get('lc_notebook_meme');
-    const meme: NotebookMEME = isNotebookMEME(memeobj) ? (memeobj as NotebookMEME) : {};
-    if (!meme.current) {
-      if(uuids) {
-        if (uuids.length <= 0) {
-          throw new Error('too few generated UUIDs');
-        }
-        meme.current = uuids.shift();
+function generateNotebookMEME(
+  notebook: INotebookModel,
+  uuids: string[] | null
+) {
+  let counter = 0;
+  const memeobj = notebook.metadata.get('lc_notebook_meme');
+  const meme: INotebookMEME = isNotebookMEME(memeobj)
+    ? (memeobj as INotebookMEME)
+    : {};
+  if (!meme.current) {
+    if (uuids) {
+      if (uuids.length <= 0) {
+        throw new Error('too few generated UUIDs');
       }
-      counter++;
+      meme.current = uuids.shift();
     }
-    notebook.metadata.set('lc_notebook_meme', meme as ReadonlyPartialJSONObject);
+    counter++;
+  }
+  notebook.metadata.set('lc_notebook_meme', meme as ReadonlyPartialJSONObject);
 
-    const cells = notebook.cells;
-    for (let i = 0; i < cells.length; ++ i) {
-      counter += generateCellMEME(cells.get(i), uuids);
-    }
-    return counter;
+  const cells = notebook.cells;
+  for (let i = 0; i < cells.length; ++i) {
+    counter += generateCellMEME(cells.get(i), uuids);
+  }
+  return counter;
 }
 
 function generateCellMEME(cell: ICellModel, uuids: string[] | null) {
-    let counter = 0;
-    const memeobj = cell.metadata.get('lc_cell_meme');
-    const meme: CellMEME = isCellMEME(memeobj) ? (memeobj as CellMEME) : {};
-    if(!meme.current) {
-      if(uuids) {
-        if (uuids.length <= 0) {
-          throw new Error('too few generated UUIDs');
-        }
-        meme.current = uuids.shift()
-        cell.metadata.set('lc_cell_meme', meme as ReadonlyPartialJSONObject);
-        updateCellElemAttr(cell);
+  let counter = 0;
+  const memeobj = cell.metadata.get('lc_cell_meme');
+  const meme: ICellMEME = isCellMEME(memeobj) ? (memeobj as ICellMEME) : {};
+  if (!meme.current) {
+    if (uuids) {
+      if (uuids.length <= 0) {
+        throw new Error('too few generated UUIDs');
       }
-      counter++;
+      meme.current = uuids.shift();
+      cell.metadata.set('lc_cell_meme', meme as ReadonlyPartialJSONObject);
+      updateCellElemAttr(cell);
     }
-    return counter;
+    counter++;
+  }
+  return counter;
 }
 
 function updatePrevNextMEME(notebook: INotebookModel) {
   const cells = notebook.cells;
   for (let i = 0; i < cells.length; ++i) {
     const prev_cell = i > 0 ? cells.get(i - 1) : null;
-    const next_cell = i <　cells.length - 1 ? cells.get(i + 1) : null;
+    const next_cell = i < cells.length - 1 ? cells.get(i + 1) : null;
     updatePrevNextCellMEME(cells.get(i), prev_cell, next_cell);
   }
 }
 
-function updatePrevNextCellMEME(cell: ICellModel, prevCell: ICellModel | null, nextCell: ICellModel | null) {
+function updatePrevNextCellMEME(
+  cell: ICellModel,
+  prevCell: ICellModel | null,
+  nextCell: ICellModel | null
+) {
   const memeobj = cell.metadata.get('lc_cell_meme');
-  const meme: CellMEME = isCellMEME(memeobj) ? (memeobj as CellMEME) : {};
+  const meme: ICellMEME = isCellMEME(memeobj) ? (memeobj as ICellMEME) : {};
   const prevMemeobj = prevCell ? prevCell.metadata.get('lc_cell_meme') : null;
   const nextMemeobj = nextCell ? nextCell.metadata.get('lc_cell_meme') : null;
 
-  const previous = prevMemeobj ? (isCellMEME(prevMemeobj) ? (prevMemeobj as CellMEME).current : null) : null;
-  const next = nextMemeobj ? (isCellMEME(nextMemeobj) ? (nextMemeobj as CellMEME).current : null) : null;
+  const previous = prevMemeobj
+    ? isCellMEME(prevMemeobj)
+      ? (prevMemeobj as ICellMEME).current
+      : null
+    : null;
+  const next = nextMemeobj
+    ? isCellMEME(nextMemeobj)
+      ? (nextMemeobj as ICellMEME).current
+      : null
+    : null;
   if (previous) {
     meme.previous = previous;
   } else {
@@ -161,22 +190,28 @@ function updatePrevNextHistory(notebook: INotebookModel) {
   let counter = 0;
   const cells = notebook.cells;
   for (let i = 0; i < cells.length; ++i) {
-    const prev_cell = i > 0 ? cells.get(i-1) : null;
-    const next_cell = i <　cells.length-1 ? cells.get(i+1) : null;
+    const prev_cell = i > 0 ? cells.get(i - 1) : null;
+    const next_cell = i < cells.length - 1 ? cells.get(i + 1) : null;
     counter += updatePrevNextCellHistory(cells.get(i), prev_cell, next_cell);
   }
   return counter;
 }
 
-function updatePrevNextCellHistory(cell: ICellModel, prevCell: ICellModel | null, nextCell: ICellModel | null) {
+function updatePrevNextCellHistory(
+  cell: ICellModel,
+  prevCell: ICellModel | null,
+  nextCell: ICellModel | null
+) {
   const memeobj = cell.metadata.get('lc_cell_meme');
   if (!isCellMEME(memeobj)) {
     return 0;
   }
-  const meme = memeobj as CellMEME;
-  if (typeof meme.current === "undefined"
-    || typeof meme.previous === "undefined"
-    || typeof meme.next === "undefined") {
+  const meme = memeobj as ICellMEME;
+  if (
+    typeof meme.current === 'undefined' ||
+    typeof meme.previous === 'undefined' ||
+    typeof meme.next === 'undefined'
+  ) {
     return 0;
   }
 
@@ -184,13 +219,23 @@ function updatePrevNextCellHistory(cell: ICellModel, prevCell: ICellModel | null
   const next_meme = meme.next;
   const prevMemeobj = prevCell ? prevCell.metadata.get('lc_cell_meme') : null;
   const nextMemeobj = nextCell ? nextCell.metadata.get('lc_cell_meme') : null;
-  const previous = prevMemeobj ? (isCellMEME(prevMemeobj) ? (prevMemeobj as CellMEME) : null) : null;
-  const next = nextMemeobj ? (isCellMEME(nextMemeobj) ? (nextMemeobj as CellMEME) : null) : null;
+  const previous = prevMemeobj
+    ? isCellMEME(prevMemeobj)
+      ? (prevMemeobj as ICellMEME)
+      : null
+    : null;
+  const next = nextMemeobj
+    ? isCellMEME(nextMemeobj)
+      ? (nextMemeobj as ICellMEME)
+      : null
+    : null;
 
-  if ((previous && previous.current !== prev_meme)
-    || (prevCell && !previous)
-    || (next && next.current != next_meme)
-    || (nextCell && !next)) {
+  if (
+    (previous && previous.current !== prev_meme) ||
+    (prevCell && !previous) ||
+    (next && next.current !== next_meme) ||
+    (nextCell && !next)
+  ) {
     let history = meme.history;
     if (!history) {
       history = meme.history = [];
@@ -198,7 +243,7 @@ function updatePrevNextCellHistory(cell: ICellModel, prevCell: ICellModel | null
     history.push({
       current: meme.current,
       previous: meme.previous,
-      next: meme.next,
+      next: meme.next
     });
     cell.metadata.set('lc_cell_meme', meme as ReadonlyPartialJSONObject);
     return 1;
@@ -206,7 +251,9 @@ function updatePrevNextCellHistory(cell: ICellModel, prevCell: ICellModel | null
   return 0;
 }
 
-export async function generateMEME(notebook: INotebookModel) {
+export async function generateMEME(
+  notebook: INotebookModel
+): Promise<IGeneratedMEME> {
   const history_count = updatePrevNextHistory(notebook);
   let meme_count = generateNotebookMEME(notebook, null);
   const uuids = await generateUUID(meme_count);
@@ -227,15 +274,15 @@ function createBranchNumber() {
   return Math.floor(num).toString(16).padStart(4, '0');
 }
 
-function parseCellMEME(meme: string): MEME {
+function parseCellMEME(meme: string): IMEME {
   const ids = meme.split('-');
   const uuid = ids.slice(0, 5).join('-');
   const branch_count = ids.length > 5 ? parseInt(ids[5]) : 0;
   const branch_numbers = ids.slice(6);
-  return {uuid, branch_count, branch_numbers};
+  return { uuid, branch_count, branch_numbers };
 }
 
-function combineCellMEME(parts: MEME) {
+function combineCellMEME(parts: IMEME) {
   let meme = parts.uuid;
   if (parts.branch_count > 0) {
     meme += '-' + parts.branch_count;
@@ -255,12 +302,12 @@ function addBranchNumber(meme: string) {
   return combineCellMEME(parts);
 }
 
-export function generateBranchNumber(cell: ICellModel) {
+export function generateBranchNumber(cell: ICellModel): void {
   const meme = cell.metadata.get('lc_cell_meme');
   if (!isCellMEME(meme)) {
     return;
   }
-  const newMeme = Object.assign({}, meme) as CellMEME;
+  const newMeme = Object.assign({}, meme) as ICellMEME;
   if (!newMeme.current) {
     return;
   }
@@ -269,14 +316,14 @@ export function generateBranchNumber(cell: ICellModel) {
   updateCellElemAttr(cell);
 }
 
-export function generateBranchNumberAll(notebook: INotebookModel) {
-  for (let i = 0; i < notebook.cells.length; i ++) {
+export function generateBranchNumberAll(notebook: INotebookModel): void {
+  for (let i = 0; i < notebook.cells.length; i++) {
     const cell = notebook.cells.get(i);
     generateBranchNumber(cell);
   }
 }
 
-export function updateCellElemAttr(cell: ICellModel) {
+export function updateCellElemAttr(cell: ICellModel): void {
   /*
   const current = cell.metadata['lc_cell_meme'] && cell.metadata['lc_cell_meme']['current'] || '';
   cell.element.attr(CELL_MEME_ATTR_KEY, current);
