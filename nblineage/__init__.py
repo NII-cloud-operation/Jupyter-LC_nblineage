@@ -41,9 +41,9 @@ def load_jupyter_server_extension(nb_app):
     web_app = nb_app.web_app
     host_pattern = '.*$'
     count_regex = r'(?P<count>[0-9]+)'
-    base_url = web_app.settings['base_url'] + '/nblineage'
-    uuid_route_pattern = url_path_join(base_url, '/uuid/v1/%s' % count_regex)
-    signature_route_pattern = url_path_join(base_url, '/lc/server_signature')
+    base_url = web_app.settings['base_url']
+    uuid_route_pattern = url_path_join(base_url, '/nblineage/uuid/v1/%s' % count_regex)
+    signature_route_pattern = url_path_join(base_url, '/nblineage/lc/server_signature')
 
     web_app.add_handlers(host_pattern, [
         (uuid_route_pattern, handler.UUIDv1Handler, {}),

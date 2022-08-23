@@ -1,4 +1,4 @@
-FROM jupyter/scipy-notebook
+FROM jupyter/scipy-notebook:latest
 
 # nblineage test container
 
@@ -12,18 +12,25 @@ RUN echo "c.MultiKernelManager.kernel_manager_class = 'lc_wrapper.LCWrapperKerne
     echo "c.KernelManager.shutdown_wait_time = 10.0" >> $CONDA_DIR/etc/jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.kernel_spec_manager_class = 'lc_wrapper.LCWrapperKernelSpecManager'" >> $CONDA_DIR/etc/jupyter/jupyter_notebook_config.py
 
-
 ### extensions for jupyter
-COPY . /tmp/nblineage
 RUN pip --no-cache-dir install jupyter_nbextensions_configurator \
     git+https://github.com/NII-cloud-operation/Jupyter-LC_wrapper \
     git+https://github.com/NII-cloud-operation/Jupyter-multi_outputs \
     git+https://github.com/NII-cloud-operation/Jupyter-LC_notebook_diff.git \
-    git+https://github.com/NII-cloud-operation/sidestickies.git \
-    /tmp/nblineage
+    git+https://github.com/NII-cloud-operation/sidestickies.git
+
+### Install nblineage
+COPY . /tmp/nblineage
+ENV nblineage_release_tag=0.2.0.test5 \
+    nblineage_release_url=https://github.com/yacchin1205/Jupyter-LC_nblineage/releases/download/
+RUN pip3 install --no-cache-dir ${nblineage_release_url}${nblineage_release_tag}/nblineage-${nblineage_release_tag}.tar.gz && \
+    jupyter labextension install ${nblineage_release_url}${nblineage_release_tag}/nblineage-${nblineage_release_tag}.tgz && \
+    jupyter labextension enable nblineage && \
+    jupyter nblineage quick-setup --sys-prefix && \
+    jlpm cache clean && \
+    npm cache clean --force
 
 RUN jupyter nbextension enable nbextensions_configurator/config_menu/main --sys-prefix && \
-    jupyter nblineage quick-setup --sys-prefix && \
     jupyter nbextension install --py lc_wrapper --sys-prefix && \
     jupyter nbextension enable --py lc_wrapper --sys-prefix && \
     jupyter nbextension install --py lc_multi_outputs --sys-prefix && \
