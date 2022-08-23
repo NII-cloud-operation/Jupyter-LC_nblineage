@@ -1,7 +1,21 @@
+import json
+from pathlib import Path
 from notebook.base.handlers import IPythonHandler
 from notebook.utils import url_path_join
 from .tracking_server import TrackingServer
 from . import handler
+
+HERE = Path(__file__).parent.resolve()
+
+with (HERE / "labextension" / "package.json").open() as fid:
+    data = json.load(fid)
+
+# JupyterLab extension
+def _jupyter_labextension_paths():
+    return [{
+        "src": "labextension",
+        "dest": data["name"]
+    }]
 
 # nbextension
 def _jupyter_nbextension_paths():
@@ -27,9 +41,9 @@ def load_jupyter_server_extension(nb_app):
     web_app = nb_app.web_app
     host_pattern = '.*$'
     count_regex = r'(?P<count>[0-9]+)'
-    uuid_route_pattern = url_path_join(web_app.settings['base_url'],
-                                  '/uuid/v1/%s' % count_regex)
-    signature_route_pattern = url_path_join(web_app.settings['base_url'], '/lc/server_signature')
+    base_url = web_app.settings['base_url'] + '/nblineage'
+    uuid_route_pattern = url_path_join(base_url, '/uuid/v1/%s' % count_regex)
+    signature_route_pattern = url_path_join(base_url, '/lc/server_signature')
 
     web_app.add_handlers(host_pattern, [
         (uuid_route_pattern, handler.UUIDv1Handler, {}),
