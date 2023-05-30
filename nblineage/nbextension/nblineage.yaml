@@ -5,4 +5,4 @@ Description: "This extension track notebook's lineage."
 Link: README.md
 Icon: icon.png
 Main: main.js
-Compatibility: 4.x 5.x
+Compatibility: 6.x

@@ -16,10 +16,10 @@ setup_args = dict (name='lc-nblineage',
       package_dir={'nblineage': 'nblineage'},
       package_data={'nblineage': ['nbextension/*']},
       include_package_data=True,
-      platforms=['Jupyter Notebook 4.2.x'],
+      platforms=['Jupyter Notebook 6.5.x'],
       zip_safe=False,
       install_requires=[
-          'notebook>=4.2.0',
+          'notebook>=6.5.4',
       ],
       entry_points={
           'console_scripts': [

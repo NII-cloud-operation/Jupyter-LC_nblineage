@@ -1,4 +1,4 @@
-FROM jupyter/scipy-notebook
+FROM jupyter/scipy-notebook:latest
 
 # nblineage test container
 
@@ -22,15 +22,20 @@ RUN pip --no-cache-dir install jupyter_nbextensions_configurator \
     git+https://github.com/NII-cloud-operation/sidestickies.git \
     /tmp/nblineage
 
-RUN jupyter nbextension enable nbextensions_configurator/config_menu/main --sys-prefix && \
+RUN jupyter nbclassic-extension install --py jupyter_nbextensions_configurator --sys-prefix && \
+    jupyter nbclassic-extension enable --py jupyter_nbextensions_configurator --sys-prefix && \
+    jupyter nbclassic-serverextension enable --py jupyter_nbextensions_configurator --sys-prefix && \
     jupyter nblineage quick-setup --sys-prefix && \
-    jupyter nbextension install --py lc_wrapper --sys-prefix && \
-    jupyter nbextension enable --py lc_wrapper --sys-prefix && \
-    jupyter nbextension install --py lc_multi_outputs --sys-prefix && \
-    jupyter nbextension enable --py lc_multi_outputs --sys-prefix && \
-    jupyter nbextension install --py lc_notebook_diff --sys-prefix && \
+    jupyter nbclassic-extension install --py lc_wrapper --sys-prefix && \
+    jupyter nbclassic-extension enable --py lc_wrapper --sys-prefix && \
+    jupyter nbclassic-extension install --py lc_multi_outputs --sys-prefix && \
+    jupyter nbclassic-extension enable --py lc_multi_outputs --sys-prefix && \
+    jupyter nbclassic-extension install --py lc_notebook_diff --sys-prefix && \
     jupyter kernelspec install /tmp/kernels/python3-wrapper --sys-prefix && \
     jupyter wrapper-kernelspec install /tmp/wrapper-kernels/python3 --sys-prefix && \
     fix-permissions /home/$NB_USER
+
+# Make classic notebook the default
+ENV DOCKER_STACKS_JUPYTER_CMD=nbclassic
 
 USER $NB_USER
