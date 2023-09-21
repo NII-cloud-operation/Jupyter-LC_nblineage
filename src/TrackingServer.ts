@@ -15,7 +15,7 @@ export class TrackingServer {
   ): Promise<boolean> {
     console.log('[nblineage] tracking the notebook server environment');
 
-    const memeobj = notebook.metadata.get('lc_notebook_meme');
+    const memeobj = notebook.getMetadata('lc_notebook_meme');
     const meme: INotebookMEME = isNotebookMEME(memeobj)
       ? (memeobj as INotebookMEME)
       : {};
@@ -39,7 +39,7 @@ export class TrackingServer {
         trackingMetadata.history.push(trackingMetadata.current);
       }
       trackingMetadata.current = serverSignature;
-      notebook.metadata.set(
+      notebook.setMetadata(
         'lc_notebook_meme',
         meme as ReadonlyPartialJSONObject
       );
@@ -90,7 +90,12 @@ export class TrackingServer {
     const serverEnv = await this.initServerEnv();
     const serverSignature: IServerSignatureRecord = {};
 
-    serverSignature.notebook_path = panel.title.caption;
+    let path = panel.context.contentsModel?.path;
+    if(path != null && path.charAt(0) !== '/') {
+        path = '/' + path;
+    }
+    serverSignature.notebook_path = path;
+    console.log(serverSignature.notebook_path);
     /*
       notebook.
         server_signature['server_url'] = window.location.protocol + "//" + window.location.host + notebook.base_url;
