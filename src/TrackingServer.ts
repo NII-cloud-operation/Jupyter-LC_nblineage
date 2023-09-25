@@ -91,8 +91,8 @@ export class TrackingServer {
     const serverSignature: IServerSignatureRecord = {};
 
     let path = panel.context.contentsModel?.path;
-    if(path != null && path.charAt(0) !== '/') {
-        path = '/' + path;
+    if (path && path.charAt(0) !== '/') {
+      path = '/' + path;
     }
     serverSignature.notebook_path = path;
     console.log(serverSignature.notebook_path);
