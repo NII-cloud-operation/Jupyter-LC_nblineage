@@ -25,6 +25,9 @@ dependencies = [
 ]
 dynamic = ["version", "description", "authors", "urls", "keywords"]
 
+[project.scripts]
+jupyter-nblineage = "nblineage.extensionapp:main"
+
 [tool.hatch.version]
 source = "nodejs"
 
