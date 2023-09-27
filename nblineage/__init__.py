@@ -26,11 +26,10 @@ def _jupyter_nbextension_paths():
         require="nblineage/main")]
 
 # server extension
-def _jupyter_server_extension_paths():
+def _jupyter_server_extension_points():
     return [dict(
         module= "nblineage"
     )]
-_jupyter_server_extension_points = _jupyter_server_extension_paths;
 
 def _load_jupyter_server_extension(nb_app):
     nb_app.log.info('Loaded server extension nblineage')
