@@ -29,9 +29,6 @@ dynamic = ["version", "description", "authors", "urls", "keywords"]
 [project.scripts]
 jupyter-nblineage = "nblineage.extensionapp:main"
 
-[tool.poetry.dependencies]
-notebook = ">=6.5.4"
-
 [tool.hatch.version]
 source = "nodejs"
 
