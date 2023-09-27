@@ -22,11 +22,15 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
+    "notebook"
 ]
 dynamic = ["version", "description", "authors", "urls", "keywords"]
 
 [project.scripts]
 jupyter-nblineage = "nblineage.extensionapp:main"
+
+[tool.poetry.dependencies]
+notebook = ">=6.5.4"
 
 [tool.hatch.version]
 source = "nodejs"
