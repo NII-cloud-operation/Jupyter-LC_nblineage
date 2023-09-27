@@ -25,6 +25,7 @@ def _jupyter_server_extension_points():
     return [dict(
         module= "nblineage"
     )]
+_jupyter_server_extension_paths = _jupyter_server_extension_points
 
 def _load_jupyter_server_extension(nb_app):
     nb_app.log.info('Loaded server extension nblineage')
@@ -44,3 +45,6 @@ def _load_jupyter_server_extension(nb_app):
         (uuid_route_pattern, handler.UUIDv1Handler, {}),
         (signature_route_pattern, handler.ServerSignatureHandler, dict(nb_app=nb_app))
     ])
+
+# For backward compatibility with notebook server - useful for Binder/JupyterHub
+load_jupyter_server_extension = _load_jupyter_server_extension
