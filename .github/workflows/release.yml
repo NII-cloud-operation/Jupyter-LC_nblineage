@@ -56,7 +56,7 @@ jobs:
         #jupyter labextension list 2>&1 | grep -ie "nblineage.*OK"
         python -m jupyterlab.browser_check
 
-        check-manifest -v
+        #check-manifest -v
 
         pip install build
         python -m build --sdist

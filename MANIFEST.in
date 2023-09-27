@@ -31,6 +31,5 @@ include LICENSE.txt
 include Dockerfile
 recursive-include nblineage *.ipynb
 recursive-include nblineage *.py
-recursive-include _temp_extension *.yml
 
 include nblineage/nbextension/*
