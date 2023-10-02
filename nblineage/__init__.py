@@ -3,7 +3,7 @@ from pathlib import Path
 # from notebook.base.handlers import IPythonHandler
 from jupyter_server.utils import url_path_join
 from .tracking_server import TrackingServer
-from extensionapp import ExtensionApp
+from .extensionapp import ExtensionApp
 from . import handler
 
 # JupyterLab extension
