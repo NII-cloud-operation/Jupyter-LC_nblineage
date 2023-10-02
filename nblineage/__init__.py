@@ -3,7 +3,6 @@ from pathlib import Path
 # from notebook.base.handlers import IPythonHandler
 from jupyter_server.utils import url_path_join
 from .tracking_server import TrackingServer
-from .extensionapp import ExtensionApp
 from . import handler
 
 # JupyterLab extension
@@ -24,8 +23,7 @@ def _jupyter_nbextension_paths():
 # server extension
 def _jupyter_server_extension_points():
     return [dict(
-        module= "nblineage",
-        app= ExtensionApp
+        module= "nblineage"
     )]
 
 def _jupyter_server_extension_paths():
