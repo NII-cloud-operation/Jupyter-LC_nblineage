@@ -22,7 +22,6 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
-    "notebook"
 ]
 dynamic = ["version", "description", "authors", "urls", "keywords"]
 
