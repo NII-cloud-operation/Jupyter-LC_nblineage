@@ -41,6 +41,7 @@ exclude = [".github", "binder"]
 [tool.hatch.build.targets.wheel.shared-data]
 "nblineage/labextension" = "share/jupyter/labextensions/nblineage"
 "install.json" = "share/jupyter/labextensions/nblineage/install.json"
+"jupyter-config/server-config" = "etc/jupyter/jupyter_server_config.d"
 
 [tool.hatch.build.hooks.version]
 path = "nblineage/_version.py"
