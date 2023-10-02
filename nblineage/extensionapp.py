@@ -16,7 +16,9 @@ from jupyter_server.extension.serverextension import BaseExtensionApp
 #     BaseExtensionApp = BaseNBExtensionApp
 
 # from notebook import nbextensions
-from jupyter_server.extension import serverextensions
+from jupyter_server.extension.serverextension import (
+    EnableServerExtensionApp,
+    DisableServerExtensionApp)
 
 from traitlets.config.application import catch_config_error
 from traitlets.config.application import Application
@@ -34,7 +36,7 @@ class ExtensionQuickSetupApp(BaseExtensionApp):
     def start(self):
         self.argv.extend(['--py', 'nblineage'])
 
-        install = serverextensions.EnableServerExtensionApp()
+        install = EnableServerExtensionApp()
         install.initialize(self.argv)
         install.start()
         # install = nbextensions.InstallNBExtensionApp()
@@ -59,7 +61,7 @@ class ExtensionQuickRemovalApp(BaseExtensionApp):
         # uninstall = nbextensions.UninstallNBExtensionApp()
         # uninstall.initialize(self.argv)
         # uninstall.start()
-        uninstall = serverextensions.DisableServerExtensionApp()
+        uninstall = DisableServerExtensionApp()
         uninstall.initialize(self.argv)
         uninstall.start()
 
