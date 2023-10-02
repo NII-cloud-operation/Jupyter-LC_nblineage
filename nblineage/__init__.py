@@ -27,7 +27,9 @@ def _jupyter_server_extension_points():
         module= "nblineage",
         app= ExtensionApp
     )]
-_jupyter_server_extension_paths = _jupyter_server_extension_points
+
+def _jupyter_server_extension_paths():
+    return _jupyter_server_extension_points()
 
 def _load_jupyter_server_extension(nb_app):
     nb_app.log.info('Loaded server extension nblineage')
