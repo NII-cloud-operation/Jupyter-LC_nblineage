@@ -5,11 +5,16 @@ from jupyter_server.utils import url_path_join
 from .tracking_server import TrackingServer
 from . import handler
 
+HERE = Path(__file__).parent.resolve()
+
+with (HERE / "labextension" / "package.json").open() as fid:
+    data = json.load(fid)
+
 # JupyterLab extension
 def _jupyter_labextension_paths():
     return [{
         "src": "labextension",
-        "dest": "nblineage"
+        "dest": data["name"]
     }]
 
 # nbextension
