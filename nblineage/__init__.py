@@ -23,7 +23,7 @@ def _jupyter_nbextension_paths():
 # server extension
 def _jupyter_server_extension_points():
     return [dict(
-        module= "nblineage"
+        module="nblineage"
     )]
 
 def _jupyter_server_extension_paths():
