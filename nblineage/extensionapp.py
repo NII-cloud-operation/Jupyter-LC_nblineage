@@ -4,16 +4,12 @@ import io
 
 from ._version import __version__
 
-# from notebook.nbextensions import (InstallNBExtensionApp, EnableNBExtensionApp,
-#     DisableNBExtensionApp)
+from nbclassic.nbextensions import (InstallNBExtensionApp, EnableNBExtensionApp,
+    DisableNBExtensionApp, UninstallNBExtensionApp)
 
 from jupyter_core.application import JupyterApp
 from jupyter_server.extension.serverextension import BaseExtensionApp
-# try:
-#     from notebook.extensions import BaseExtensionApp
-# except ImportError:
-#     from notebook.nbextensions import BaseNBExtensionApp
-#     BaseExtensionApp = BaseNBExtensionApp
+from nbclassic.extensions import BaseExtensionApp
 
 # from notebook import nbextensions
 from jupyter_server.extension.serverextension import (
@@ -39,12 +35,12 @@ class ExtensionQuickSetupApp(BaseExtensionApp):
         install = EnableServerExtensionApp()
         install.initialize(self.argv)
         install.start()
-        # install = nbextensions.InstallNBExtensionApp()
-        # install.initialize(self.argv)
-        # install.start()
-        # enable = nbextensions.EnableNBExtensionApp()
-        # enable.initialize(self.argv)
-        # enable.start()
+        install = InstallNBExtensionApp()
+        install.initialize(self.argv)
+        install.start()
+        enable = EnableNBExtensionApp()
+        enable.initialize(self.argv)
+        enable.start()
 
 class ExtensionQuickRemovalApp(BaseExtensionApp):
     """Disables and uninstalls all parts of this extension"""
@@ -55,12 +51,12 @@ class ExtensionQuickRemovalApp(BaseExtensionApp):
     def start(self):
         self.argv.extend(['--py', 'nblineage'])
 
-        # disable = nbextensions.DisableNBExtensionApp()
-        # disable.initialize(self.argv)
-        # disable.start()
-        # uninstall = nbextensions.UninstallNBExtensionApp()
-        # uninstall.initialize(self.argv)
-        # uninstall.start()
+        disable = DisableNBExtensionApp()
+        disable.initialize(self.argv)
+        disable.start()
+        uninstall = UninstallNBExtensionApp()
+        uninstall.initialize(self.argv)
+        uninstall.start()
         uninstall = DisableServerExtensionApp()
         uninstall.initialize(self.argv)
         uninstall.start()
