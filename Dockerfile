@@ -21,21 +21,22 @@ RUN pip --no-cache-dir install jupyter_nbextensions_configurator \
 
 ### Install nblineage
 COPY . /tmp/nblineage
-ENV nblineage_release_tag=0.2.0.test5 \
-    nblineage_release_url=https://github.com/yacchin1205/Jupyter-LC_nblineage/releases/download/
+ENV nblineage_release_tag=0.2.1.test2-24 \
+    nblineage_release_url=https://github.com/miya-biz/Jupyter-LC_nblineage/releases/download/
 RUN pip3 install --no-cache-dir ${nblineage_release_url}${nblineage_release_tag}/nblineage-${nblineage_release_tag}.tar.gz && \
     jupyter labextension install ${nblineage_release_url}${nblineage_release_tag}/nblineage-${nblineage_release_tag}.tgz && \
     jupyter labextension enable nblineage && \
     jupyter nblineage quick-setup --sys-prefix && \
-    jlpm cache clean && \
+    # jlpm cache clean && \
     npm cache clean --force
 
-RUN jupyter nbextension enable nbextensions_configurator/config_menu/main --sys-prefix && \
-    jupyter nbextension install --py lc_wrapper --sys-prefix && \
-    jupyter nbextension enable --py lc_wrapper --sys-prefix && \
-    jupyter nbextension install --py lc_multi_outputs --sys-prefix && \
-    jupyter nbextension enable --py lc_multi_outputs --sys-prefix && \
-    jupyter nbextension install --py lc_notebook_diff --sys-prefix && \
+RUN jupyter nbclassic-extension install --py jupyter_nbextensions_configurator --sys-prefix && \
+    jupyter nbclassic-extension enable --py jupyter_nbextensions_configurator --sys-prefix && \
+    jupyter nbclassic-extension install --py lc_wrapper --sys-prefix && \
+    jupyter nbclassic-extension enable --py lc_wrapper --sys-prefix && \
+    jupyter nbclassic-extension install --py lc_multi_outputs --sys-prefix && \
+    jupyter nbclassic-extension enable --py lc_multi_outputs --sys-prefix && \
+    jupyter nbclassic-extension install --py lc_notebook_diff --sys-prefix && \
     jupyter kernelspec install /tmp/kernels/python3-wrapper --sys-prefix && \
     jupyter wrapper-kernelspec install /tmp/wrapper-kernels/python3 --sys-prefix && \
     fix-permissions /home/$NB_USER
