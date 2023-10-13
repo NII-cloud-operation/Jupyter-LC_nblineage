@@ -8,8 +8,11 @@ from nbclassic.nbextensions import (InstallNBExtensionApp, EnableNBExtensionApp,
     DisableNBExtensionApp, UninstallNBExtensionApp)
 
 from jupyter_core.application import JupyterApp
-from jupyter_server.extension.serverextension import BaseExtensionApp
-from nbclassic.extensions import BaseExtensionApp
+try:
+    from jupyter_server.extension.serverextension import BaseExtensionApp
+except ImportError:
+    from nbclassic.extensions import BaseNBExtensionApp
+    BaseExtensionApp = BaseNBExtensionApp
 
 # from notebook import nbextensions
 from jupyter_server.extension.serverextension import (
