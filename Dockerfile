@@ -21,13 +21,9 @@ RUN pip --no-cache-dir install jupyter_nbextensions_configurator \
 
 ### Install nblineage
 COPY . /tmp/nblineage
-ENV nblineage_release_tag=0.2.1.test2-25 \
-    nblineage_release_url=https://github.com/miya-biz/Jupyter-LC_nblineage/releases/download/
-RUN pip3 install --no-cache-dir ${nblineage_release_url}${nblineage_release_tag}/nblineage-${nblineage_release_tag}.tar.gz && \
-    jupyter labextension install ${nblineage_release_url}${nblineage_release_tag}/nblineage-${nblineage_release_tag}.tgz && \
+RUN pip install --no-cache-dir /tmp/nblineage && \
     jupyter labextension enable nblineage && \
     jupyter nblineage quick-setup --sys-prefix && \
-    # jlpm cache clean && \
     npm cache clean --force
 
 RUN jupyter nbclassic-extension install --py jupyter_nbextensions_configurator --sys-prefix && \
