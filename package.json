@@ -29,6 +29,9 @@
     "type": "git",
     "url": "https://github.com/NII-cloud-operation/Jupyter-LC_nblineage.git"
   },
+  "workspaces": [
+    "ui-tests"
+  ],
   "scripts": {
     "build": "jlpm build:lib && jlpm build:labextension:dev",
     "build:labextension": "jupyter labextension build .",
