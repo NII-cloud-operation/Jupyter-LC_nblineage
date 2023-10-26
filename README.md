@@ -11,23 +11,17 @@ Jupyter-LC\_nblineage is an extension that put tracking ID, which we call *meme*
 
 ## Install
 
-    ```
-    pip install git+https://github.com/NII-cloud-operation/Jupyter-LC_nblineage
-    ```
+        $ pip install git+https://github.com/NII-cloud-operation/Jupyter-LC_nblineage
 
 To use nblineage extension you will also need to install and enable, you can use Jupyter subcommand:
 
-    ```
-    jupyter nblineage quick-setup
-    ```
+        $ jupyter nblineage quick-setup
 
 then restart Jupyter notebook.
 
 To disable and uninstall this extension, use:
 
-    ```
-    jupyter nblineage quick-remove
-    ```
+        $ jupyter nblineage quick-remove
 
 ## Usage
 
@@ -93,9 +87,7 @@ Example of cell's meme at `lc\_cell\_meme` in cell metadata.
 
 This subcommand will make a copy of a notebook and reassign new meme IDs to the duplicated notebook and to the cells within it.
 
-    ```
-    jupyter nblineage new-root-meme <source.ipynb> <reassigned.ipynb>
-    ```
+        $ jupyter nblineage new-root-meme <source.ipynb> <reassigned.ipynb>
 
 Example of notebook's meme in <reassigned.ipynb>
 
