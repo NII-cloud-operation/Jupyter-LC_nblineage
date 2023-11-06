@@ -13,7 +13,7 @@ jobs:
     - name: Install node
       uses: actions/setup-node@v3
       with:
-       node-version: 16
+       node-version: 18
     - name: Install Python
       uses: actions/setup-python@v2
       with:
@@ -51,9 +51,9 @@ jobs:
         jlpm run eslint:check
         python -m pip install .
 
-        #jupyter server extension list 2>&1 | grep -ie "nblineage.*OK"
+        jupyter server extension list 2>&1 | grep -ie "nblineage.*OK"
 
-        #jupyter labextension list 2>&1 | grep -ie "nblineage.*OK"
+        jupyter labextension list 2>&1 | grep -ie "nblineage.*OK"
         python -m jupyterlab.browser_check
 
         jlpm install
