@@ -5,11 +5,11 @@ Jupyter-LC\_nblineage is an extension that put tracking ID, which we call *meme*
 * Each meme is stored in metadata, thus it would be inherited into diverged notebooks and copied cells
 * `new-root-meme` subcommand will make a copy of a notebook and reassign new memes to a duplicated notebook and to cells within it 
 
-## Prerequisite
+## Requirements
 
-* Jupyter Notebook 4.2.x or 5.x
+* JupyterLab >= 4.0.0
 
-## Installation
+## Install
 
         $ pip install git+https://github.com/NII-cloud-operation/Jupyter-LC_nblineage
 

@@ -105,21 +105,21 @@ export class NblineageExtension
     codeCell.outputs.changed.connect((_, changed) => {
       if (changed.type === 'add') {
         // Executed
-        const meme = codeCell.metadata.get('lc_cell_meme') || {};
+        const meme = codeCell.getMetadata('lc_cell_meme') || {};
         const time = new Date().toISOString();
         const newMeme = Object.assign(meme, {
           execution_end_time: time
         });
-        codeCell.metadata.set('lc_cell_meme', newMeme);
+        codeCell.setMetadata('lc_cell_meme', newMeme);
       } else if (changed.type === 'remove' && codeCell.outputs.length === 0) {
         // Clear Outputs
-        const meme = codeCell.metadata.get('lc_cell_meme') || {};
+        const meme = codeCell.getMetadata('lc_cell_meme') || {};
         if (!isCellMEME(meme)) {
           return;
         }
         const newMeme = meme as ICellMEME;
         delete newMeme.execution_end_time;
-        codeCell.metadata.set(
+        codeCell.setMetadata(
           'lc_cell_meme',
           newMeme as ReadonlyPartialJSONObject
         );
