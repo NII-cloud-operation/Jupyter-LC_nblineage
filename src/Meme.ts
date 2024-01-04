@@ -104,7 +104,7 @@ function generateNotebookMEME(
   uuids: string[] | null
 ) {
   let counter = 0;
-  const memeobj = notebook.metadata.get('lc_notebook_meme');
+  const memeobj = notebook.getMetadata('lc_notebook_meme');
   const meme: INotebookMEME = isNotebookMEME(memeobj)
     ? (memeobj as INotebookMEME)
     : {};
@@ -117,7 +117,7 @@ function generateNotebookMEME(
     }
     counter++;
   }
-  notebook.metadata.set('lc_notebook_meme', meme as ReadonlyPartialJSONObject);
+  notebook.setMetadata('lc_notebook_meme', meme as ReadonlyPartialJSONObject);
 
   const cells = notebook.cells;
   for (let i = 0; i < cells.length; ++i) {
@@ -128,7 +128,7 @@ function generateNotebookMEME(
 
 function generateCellMEME(cell: ICellModel, uuids: string[] | null) {
   let counter = 0;
-  const memeobj = cell.metadata.get('lc_cell_meme');
+  const memeobj = cell.getMetadata('lc_cell_meme');
   const meme: ICellMEME = isCellMEME(memeobj) ? (memeobj as ICellMEME) : {};
   if (!meme.current) {
     if (uuids) {
@@ -136,7 +136,7 @@ function generateCellMEME(cell: ICellModel, uuids: string[] | null) {
         throw new Error('too few generated UUIDs');
       }
       meme.current = uuids.shift();
-      cell.metadata.set('lc_cell_meme', meme as ReadonlyPartialJSONObject);
+      cell.setMetadata('lc_cell_meme', meme as ReadonlyPartialJSONObject);
       updateCellElemAttr(cell);
     }
     counter++;
@@ -158,10 +158,10 @@ function updatePrevNextCellMEME(
   prevCell: ICellModel | null,
   nextCell: ICellModel | null
 ) {
-  const memeobj = cell.metadata.get('lc_cell_meme');
+  const memeobj = cell.getMetadata('lc_cell_meme');
   const meme: ICellMEME = isCellMEME(memeobj) ? (memeobj as ICellMEME) : {};
-  const prevMemeobj = prevCell ? prevCell.metadata.get('lc_cell_meme') : null;
-  const nextMemeobj = nextCell ? nextCell.metadata.get('lc_cell_meme') : null;
+  const prevMemeobj = prevCell ? prevCell.getMetadata('lc_cell_meme') : null;
+  const nextMemeobj = nextCell ? nextCell.getMetadata('lc_cell_meme') : null;
 
   const previous = prevMemeobj
     ? isCellMEME(prevMemeobj)
@@ -183,7 +183,7 @@ function updatePrevNextCellMEME(
   } else {
     delete meme.next;
   }
-  cell.metadata.set('lc_cell_meme', meme as ReadonlyPartialJSONObject);
+  cell.setMetadata('lc_cell_meme', meme as ReadonlyPartialJSONObject);
 }
 
 function updatePrevNextHistory(notebook: INotebookModel) {
@@ -202,7 +202,7 @@ function updatePrevNextCellHistory(
   prevCell: ICellModel | null,
   nextCell: ICellModel | null
 ) {
-  const memeobj = cell.metadata.get('lc_cell_meme');
+  const memeobj = cell.getMetadata('lc_cell_meme');
   if (!isCellMEME(memeobj)) {
     return 0;
   }
@@ -217,8 +217,8 @@ function updatePrevNextCellHistory(
 
   const prev_meme = meme.previous;
   const next_meme = meme.next;
-  const prevMemeobj = prevCell ? prevCell.metadata.get('lc_cell_meme') : null;
-  const nextMemeobj = nextCell ? nextCell.metadata.get('lc_cell_meme') : null;
+  const prevMemeobj = prevCell ? prevCell.getMetadata('lc_cell_meme') : null;
+  const nextMemeobj = nextCell ? nextCell.getMetadata('lc_cell_meme') : null;
   const previous = prevMemeobj
     ? isCellMEME(prevMemeobj)
       ? (prevMemeobj as ICellMEME)
@@ -245,7 +245,7 @@ function updatePrevNextCellHistory(
       previous: meme.previous,
       next: meme.next
     });
-    cell.metadata.set('lc_cell_meme', meme as ReadonlyPartialJSONObject);
+    cell.setMetadata('lc_cell_meme', meme as ReadonlyPartialJSONObject);
     return 1;
   }
   return 0;
@@ -303,7 +303,7 @@ function addBranchNumber(meme: string) {
 }
 
 export function generateBranchNumber(cell: ICellModel): void {
-  const meme = cell.metadata.get('lc_cell_meme');
+  const meme = cell.getMetadata('lc_cell_meme');
   if (!isCellMEME(meme)) {
     return;
   }
@@ -312,7 +312,7 @@ export function generateBranchNumber(cell: ICellModel): void {
     return;
   }
   newMeme.current = addBranchNumber(newMeme.current);
-  cell.metadata.set('lc_cell_meme', newMeme as ReadonlyPartialJSONObject);
+  cell.setMetadata('lc_cell_meme', newMeme as ReadonlyPartialJSONObject);
   updateCellElemAttr(cell);
 }
 

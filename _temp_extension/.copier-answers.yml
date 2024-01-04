@@ -1,0 +1,14 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v4.1.0
+_src_path: https://github.com/jupyterlab/extension-template
+author_email: nii@example.com
+author_name: nii
+has_binder: false
+has_settings: false
+kind: frontend
+labextension_name: nblineage
+project_short_description: lineage extension for Jupyter Notebook
+python_name: nblineage
+repository: https://github.com/NII-cloud-operation/Jupyter-LC_nblineage.git
+test: true
+

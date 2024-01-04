@@ -1,20 +1,15 @@
 import json
 from pathlib import Path
-from notebook.base.handlers import IPythonHandler
-from notebook.utils import url_path_join
+# from notebook.base.handlers import IPythonHandler
+from jupyter_server.utils import url_path_join
 from .tracking_server import TrackingServer
 from . import handler
-
-HERE = Path(__file__).parent.resolve()
-
-with (HERE / "labextension" / "package.json").open() as fid:
-    data = json.load(fid)
 
 # JupyterLab extension
 def _jupyter_labextension_paths():
     return [{
         "src": "labextension",
-        "dest": data["name"]
+        "dest": "nblineage"
     }]
 
 # nbextension
@@ -26,12 +21,15 @@ def _jupyter_nbextension_paths():
         require="nblineage/main")]
 
 # server extension
-def _jupyter_server_extension_paths():
+def _jupyter_server_extension_points():
     return [dict(
-        module= "nblineage"
+        module="nblineage"
     )]
 
-def load_jupyter_server_extension(nb_app):
+def _jupyter_server_extension_paths():
+    return _jupyter_server_extension_points()
+
+def _load_jupyter_server_extension(nb_app):
     nb_app.log.info('Loaded server extension nblineage')
 
     tracking_server = TrackingServer()
@@ -49,3 +47,6 @@ def load_jupyter_server_extension(nb_app):
         (uuid_route_pattern, handler.UUIDv1Handler, {}),
         (signature_route_pattern, handler.ServerSignatureHandler, dict(nb_app=nb_app))
     ])
+
+# For backward compatibility with notebook server - useful for Binder/JupyterHub
+load_jupyter_server_extension = _load_jupyter_server_extension
