@@ -47,4 +47,7 @@ RUN jupyter nbclassic-extension install --py jupyter_nbextensions_configurator -
     jupyter wrapper-kernelspec install /tmp/wrapper-kernels/python3 --sys-prefix && \
     fix-permissions /home/$NB_USER
 
+# Workaround for https://github.com/NII-cloud-operation/Jupyter-LC_wrapper/issues/71
+RUN pip install --upgrade jupyter_core==5.6.1
+
 USER $NB_USER
