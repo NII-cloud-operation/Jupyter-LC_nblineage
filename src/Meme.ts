@@ -7,7 +7,7 @@ import {
   ReadonlyPartialJSONValue
 } from '@lumino/coreutils';
 
-//const CELL_MEME_ATTR_KEY = 'data-nblineage-meme';
+// const CELL_MEME_ATTR_KEY = 'data-nblineage-meme'; // Not used due to windowing complexity
 
 interface IMEME {
   uuid: string;
@@ -137,7 +137,6 @@ function generateCellMEME(cell: ICellModel, uuids: string[] | null) {
       }
       meme.current = uuids.shift();
       cell.setMetadata('lc_cell_meme', meme as ReadonlyPartialJSONObject);
-      updateCellElemAttr(cell);
     }
     counter++;
   }
@@ -256,10 +255,22 @@ export async function generateMEME(
 ): Promise<IGeneratedMEME> {
   const history_count = updatePrevNextHistory(notebook);
   let meme_count = generateNotebookMEME(notebook, null);
+
+  // Early return if no MEMEs need to be generated
+  if (meme_count === 0) {
+    // Still need to update prev/next relationships even if no new MEMEs
+    updatePrevNextMEME(notebook);
+    return {
+      meme_count: 0,
+      cell_history_count: history_count
+    };
+  }
+
   const uuids = await generateUUID(meme_count);
   if (!uuids) {
     throw new Error('Failed to get UUIDs from server');
   }
+
   meme_count = generateNotebookMEME(notebook, uuids);
   updatePrevNextMEME(notebook);
 
@@ -311,9 +322,14 @@ export function generateBranchNumber(cell: ICellModel): void {
   if (!newMeme.current) {
     return;
   }
+  const oldMeme = newMeme.current;
   newMeme.current = addBranchNumber(newMeme.current);
+  console.log(
+    '[nblineage] generateBranchNumber: Added branch number: %s -> %s',
+    oldMeme,
+    newMeme.current
+  );
   cell.setMetadata('lc_cell_meme', newMeme as ReadonlyPartialJSONObject);
-  updateCellElemAttr(cell);
 }
 
 export function generateBranchNumberAll(notebook: INotebookModel): void {
@@ -321,11 +337,4 @@ export function generateBranchNumberAll(notebook: INotebookModel): void {
     const cell = notebook.cells.get(i);
     generateBranchNumber(cell);
   }
-}
-
-export function updateCellElemAttr(cell: ICellModel): void {
-  /*
-  const current = cell.metadata['lc_cell_meme'] && cell.metadata['lc_cell_meme']['current'] || '';
-  cell.element.attr(CELL_MEME_ATTR_KEY, current);
-  */
 }

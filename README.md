@@ -3,7 +3,7 @@
 Jupyter-LC\_nblineage is an extension that put tracking ID, which we call *meme*, to every notebook and every cell in it.
 * The meme will be newly assigned as UUID1 when a cell or a notebook has been created and saved at first time
 * Each meme is stored in metadata, thus it would be inherited into diverged notebooks and copied cells
-* `new-root-meme` subcommand will make a copy of a notebook and reassign new memes to a duplicated notebook and to cells within it 
+* `new-root-meme` subcommand will make a copy of a notebook and reassign new memes to a duplicated notebook and to cells within it
 
 ## Requirements
 
@@ -83,6 +83,33 @@ Example of cell's meme at `lc\_cell\_meme` in cell metadata.
 }
 ```
 
+### MEME Branching Feature
+
+The nblineage extension supports MEME branching to track cell lineage when cells are copied or when the notebook environment changes.
+
+#### MEME ID Structure with Branches
+
+The MEME ID can be extended with branch information:
+- Basic format: `UUID` (e.g., `8f5c5fe2-71cc-11e7-9abe-02420aff0008`)
+- With branches: `UUID-branch_count-branch1-branch2-...` (e.g., `8f5c5fe2-71cc-11e7-9abe-02420aff0008-3-a3f2-bc1e-9d4a`)
+  - `branch_count`: Number of times this MEME has been branched
+  - `branch1, branch2, ...`: 4-digit hexadecimal branch numbers (max 10 kept, oldest removed when exceeded)
+
+#### When Branching Occurs
+
+1. **Cell Creation/Copy**: When a cell with an existing MEME is duplicated, the new cell gets a branch number added to differentiate it from the original
+2. **Server Environment Change**: When the notebook server environment changes (detected via `lc_server_signature`), all cells receive new branch numbers
+
+#### Server Environment Tracking
+
+The extension tracks the notebook server environment and detects changes:
+- Monitored properties: `server_url`, `notebook_dir`, `notebook_path`, `signature_id`
+- When a change is detected:
+  - The previous signature is moved to history
+  - All cells in the notebook receive new branch numbers
+  - This helps track when notebooks are moved between different Jupyter environments
+- The extension automatically manages MEME generation and branching during notebook save events
+
 ### new-root-meme command line tool
 
 This subcommand will make a copy of a notebook and reassign new meme IDs to the duplicated notebook and to the cells within it.
@@ -153,6 +180,55 @@ Example of cell's meme metadata in <reassigned.ipynb>
       }
     ]
   },
-... 
+...
 }
 ```
+
+## Development
+
+### Development install
+
+Note: You will need NodeJS to build the extension package.
+
+The `jlpm` command is JupyterLab's pinned version of
+[yarn](https://yarnpkg.com/) that is installed with JupyterLab. You may use
+`yarn` or `npm` in lieu of `jlpm` below.
+
+```bash
+# Clone the repo to your local environment
+# Change directory to the nblineage directory
+# Install package in development mode
+pip install -e "."
+# Link your development version of the extension with JupyterLab
+jupyter labextension develop . --overwrite
+jupyter server extension enable nblineage
+# Rebuild extension Typescript source after making changes
+jlpm build
+```
+
+You can watch the source directory and run JupyterLab at the same time in different terminals to watch for changes in the extension's source and automatically rebuild the extension.
+
+```bash
+# Watch the source directory in one terminal, automatically rebuilding when needed
+jlpm watch
+# Run JupyterLab in another terminal
+jupyter lab
+```
+
+With the watch command running, every saved change will immediately be built locally and available in your running JupyterLab. Refresh JupyterLab to load the change in your browser (you may need to wait several seconds for the extension to be rebuilt).
+
+By default, the `jlpm build` command generates the source maps for this extension to make it easier to debug using the browser dev tools. To also generate source maps for the JupyterLab core extensions, you can run the following command:
+
+```bash
+jupyter lab build --minimize=False
+```
+
+### Development uninstall
+
+```bash
+pip uninstall nblineage
+```
+
+In development mode, you will also need to remove the symlink created by `jupyter labextension develop`
+command. To find its location, you can run `jupyter labextension list` to figure out where the `labextensions`
+folder is located. Then you can remove the symlink named `nblineage` within that folder.
