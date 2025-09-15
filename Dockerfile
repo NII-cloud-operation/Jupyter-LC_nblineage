@@ -1,8 +1,18 @@
-FROM jupyter/scipy-notebook:latest
+FROM quay.io/jupyter/scipy-notebook:notebook-7.4.5
 
 # nblineage test container
 
 USER root
+
+# Install Node.js 20.x (required for some Jupyter extensions)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && \
+    mkdir -p /.npm && \
+    chown jovyan:users -R /.npm && \
+    rm -rf /var/lib/apt/lists/*
+ENV NPM_CONFIG_PREFIX=/.npm
+ENV PATH=/.npm/bin/:${PATH}
 
 RUN mkdir -p /tmp/kernels/python3-wrapper /tmp/wrapper-kernels/python3 && \
     echo '{"display_name":"Python 3 (LC_wrapper)","language":"python","argv":["/opt/conda/bin/python","-m","lc_wrapper","-f","{connection_file}"]}' > /tmp/kernels/python3-wrapper/kernel.json && \
