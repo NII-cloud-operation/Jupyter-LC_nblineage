@@ -4,7 +4,7 @@ on:
   push:
     branches: main
   pull_request:
-    branches: '*'
+    branches: '**'
 
 jobs:
   build:
@@ -56,6 +56,13 @@ jobs:
 
         jupyter labextension list 2>&1 | grep -ie "nblineage.*OK"
         python -m jupyterlab.browser_check
+
+        jlpm install
+        cd ./ui-tests
+        jlpm install
+        jlpm playwright install
+        jlpm playwright test
+        cd ..
 
         pip install build
         python -m build --sdist
