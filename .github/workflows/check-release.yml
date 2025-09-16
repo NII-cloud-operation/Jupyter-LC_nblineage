@@ -30,14 +30,14 @@ jobs:
         run: |
           echo "::set-output name=dir::$(pip cache dir)"
       - name: Cache pip
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ hashFiles('package.json') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Cache checked links
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pytest-link-check
           key: ${{ runner.os }}-linkcheck-${{ hashFiles('**/.md') }}-md-links
