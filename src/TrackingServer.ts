@@ -29,7 +29,14 @@ export class TrackingServer {
     console.log('[nblineage] server_signature = %o', serverSignature);
 
     if (!this.equalsSignature(trackingMetadata.current, serverSignature)) {
-      console.log('[nblineage] detected the notebook server was changed');
+      // Check if this is initial recording or actual change
+      const isInitialRecording = trackingMetadata.current === undefined;
+
+      if (isInitialRecording) {
+        console.log('[nblineage] recording initial server signature');
+      } else {
+        console.log('[nblineage] detected the notebook server was changed');
+      }
 
       if (trackingMetadata.history === undefined) {
         trackingMetadata.history = [];
@@ -43,7 +50,9 @@ export class TrackingServer {
         'lc_notebook_meme',
         meme as ReadonlyPartialJSONObject
       );
-      return true;
+
+      // Only return true for actual changes, not initial recording
+      return !isInitialRecording;
     } else {
       return false;
     }
@@ -90,29 +99,32 @@ export class TrackingServer {
     const serverEnv = await this.initServerEnv();
     const serverSignature: IServerSignatureRecord = {};
 
-    let path = panel.context.contentsModel?.path;
-    if (path && path.charAt(0) !== '/') {
+    // Get server URL (handles both absolute and relative baseUrl)
+    const settings = ServerConnection.makeSettings();
+    const resolvedUrl = new URL(settings.baseUrl, window.location.origin);
+    serverSignature.server_url = resolvedUrl.href;
+
+    // Get notebook path (directory containing the notebook)
+    let path = panel.context.contentsModel?.path || '';
+    if (path) {
+      const slash_index = path.lastIndexOf('/');
+      if (slash_index >= 0) {
+        path = path.substring(0, slash_index);
+      } else {
+        path = '/';
+      }
+    }
+    if (path.charAt(0) !== '/') {
       path = '/' + path;
     }
     serverSignature.notebook_path = path;
-    console.log(serverSignature.notebook_path);
-    /*
-      notebook.
-        server_signature['server_url'] = window.location.protocol + "//" + window.location.host + notebook.base_url;
-        var path = notebook.notebook_path;
-        if (path) {
-            var slash_index = path.lastIndexOf('/');
-            if (slash_index >= 0) {
-                path = path.substring(0, slash_index);
-            } else {
-                path = '/';
-            }
-        }
-        if (path.charAt(0) !== '/') {
-            path = '/' + path;
-        }
-        server_signature['notebook_path'] = path;
-      */
+
+    console.log(
+      '[nblineage] server_signature path=%s, url=%s',
+      serverSignature.notebook_path,
+      serverSignature.server_url
+    );
+
     return Object.assign(serverSignature, serverEnv);
   }
 

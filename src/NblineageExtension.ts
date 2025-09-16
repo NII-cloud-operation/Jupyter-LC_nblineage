@@ -21,32 +21,62 @@ export class NblineageExtension
   implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel>
 {
   trackingServer = new TrackingServer();
+  private isGeneratingMeme = false;
 
   createNew(
     panel: NotebookPanel,
     context: DocumentRegistry.IContext<INotebookModel>
   ): void | IDisposable {
-    let nblineageAttached = false;
-    panel.content.model?.stateChanged.connect((self, changes) => {
-      if (changes.name !== 'dirty' || !changes.newValue) {
-        return;
+    // Initialize execution time handler immediately (doesn't affect MEMEs)
+    this.initExecutionEndTimeUpdater(panel);
+
+    // Check server signature once after the notebook is fully loaded
+    context.ready.then(async () => {
+      console.log('[nblineage] Notebook ready, checking server signature');
+      try {
+        await this.addBranchNumbers(panel);
+      } catch (error) {
+        console.error('[nblineage] Failed to check server signature:', error);
       }
-      if (nblineageAttached) {
-        return;
-      }
-      nblineageAttached = true;
+
+      // Initialize branch updater AFTER initial load to avoid adding branches to existing cells
       this.initBranchUpdater(panel);
-      this.initExecutionEndTimeUpdater(panel);
-      this.addBranchNumbers(panel)
-        .then(() => {
-          this.initMEMEGenerator(panel);
-        })
-        .catch(error => {
-          /*notification_area.danger('[nblineage] Server error', undefined, undefined, {
-            title: e.message
-          });*/
-          console.error('[nblineage]', error);
-        });
+
+      // Also connect execution time updater for existing cells
+      this.initExistingCellsExecutionUpdater(panel);
+
+      // Generate MEME when content changes
+      // This ensures MEME exists when the actual save happens
+      // Set up AFTER addBranchNumbers to avoid triggering on branch number additions
+      context.model.contentChanged.connect(async () => {
+        // Prevent infinite loop: skip if we're already generating MEME
+        if (this.isGeneratingMeme) {
+          return;
+        }
+        const model = context.model;
+        if (!model) {
+          return;
+        }
+        this.isGeneratingMeme = true;
+        try {
+          // Generate MEME for new cells and update prev/next relationships
+          const result = await generateMEME(model);
+          if (result.meme_count > 0) {
+            console.log(
+              '[nblineage] Generated %d new MEMEs for %s',
+              result.meme_count,
+              panel.context.localPath
+            );
+          }
+        } catch (error) {
+          console.error(
+            '[nblineage] Error generating MEME on content change:',
+            error
+          );
+        } finally {
+          this.isGeneratingMeme = false;
+        }
+      });
     });
   }
 
@@ -64,27 +94,18 @@ export class NblineageExtension
     });
   }
 
-  initMEMEGenerator(panel: NotebookPanel): void {
-    panel.content.model?.cells.changed.connect((_, change) => {
-      if (!panel.content.model) {
-        return;
+  initExistingCellsExecutionUpdater(panel: NotebookPanel): void {
+    // Connect execution time updater for all existing code cells
+    if (!panel.content.model) {
+      return;
+    }
+    for (let i = 0; i < panel.content.model.cells.length; i++) {
+      const cellModel = panel.content.model.cells.get(i);
+      const cell = getCellByModelId(panel.content, cellModel.id);
+      if (cell && isCodeCellModel(cell.model)) {
+        this.connectExecutionEndTimeUpdater(cell.model as ICodeCellModel);
       }
-      generateMEME(panel.content.model)
-        .then(result => {
-          console.log(
-            '[nblineage] Generated meme: path=%s, cell_history_count=%d, meme_count=%d',
-            panel.title,
-            result.cell_history_count,
-            result.meme_count
-          );
-        })
-        .catch(error => {
-          /*notification_area.danger('[nblineage] Server error', undefined, undefined, {
-            title: e.message
-          });*/
-          console.error('[nblineage]', error);
-        });
-    });
+    }
   }
 
   initExecutionEndTimeUpdater(panel: NotebookPanel): void {
@@ -146,6 +167,10 @@ export class NblineageExtension
     if (!is_changed_server_signature) {
       return;
     }
+    console.log(
+      '[nblineage] Server signature changed, regenerating branch numbers for %s',
+      panel.context.localPath
+    );
     generateBranchNumberAll(panel.model);
   }
 }
