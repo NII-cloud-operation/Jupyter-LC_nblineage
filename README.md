@@ -1,4 +1,4 @@
-# Jupyter-LC\_nblineage
+# Jupyter-LC\_nblineage [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/NII-cloud-operation/Jupyter-LC_nblineage/feature/lab)
 
 Jupyter-LC\_nblineage is an extension that put tracking ID, which we call *meme*, to every notebook and every cell in it.
 * The meme will be newly assigned as UUID1 when a cell or a notebook has been created and saved at first time
