@@ -87,7 +87,7 @@
     "stylelint-config-standard": "^34.0.0",
     "stylelint-prettier": "^4.0.0",
     "ts-jest": "^26.0.0",
-    "typescript": "~5.0.2",
+    "typescript": "~5.8.0",
     "yjs": "^13.5.40"
   },
   "sideEffects": [
