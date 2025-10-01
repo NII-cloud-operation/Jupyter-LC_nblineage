@@ -94,7 +94,9 @@ export class NblineageExtension
         // Update prev/next relationships after all branch numbers are generated
         if (panel.content.model) {
           updatePrevNextMEME(panel.content.model);
-          console.log('[nblineage] initBranchUpdater: Updated prev/next relationships after branch generation');
+          console.log(
+            '[nblineage] initBranchUpdater: Updated prev/next relationships after branch generation'
+          );
         }
       }
     });
