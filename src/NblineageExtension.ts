@@ -9,7 +9,8 @@ import {
   isCellMEME,
   generateBranchNumber,
   generateBranchNumberAll,
-  generateMEME
+  generateMEME,
+  updatePrevNextMEME
 } from './Meme';
 import { TrackingServer } from './TrackingServer';
 
@@ -90,6 +91,13 @@ export class NblineageExtension
           }
           generateBranchNumber(cell.model);
         });
+        // Update prev/next relationships after all branch numbers are generated
+        if (panel.content.model) {
+          updatePrevNextMEME(panel.content.model);
+          console.log(
+            '[nblineage] initBranchUpdater: Updated prev/next relationships after branch generation'
+          );
+        }
       }
     });
   }
@@ -172,5 +180,6 @@ export class NblineageExtension
       panel.context.localPath
     );
     generateBranchNumberAll(panel.model);
+    updatePrevNextMEME(panel.model);
   }
 }

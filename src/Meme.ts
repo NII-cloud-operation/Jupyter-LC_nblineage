@@ -143,7 +143,7 @@ function generateCellMEME(cell: ICellModel, uuids: string[] | null) {
   return counter;
 }
 
-function updatePrevNextMEME(notebook: INotebookModel) {
+export function updatePrevNextMEME(notebook: INotebookModel) {
   const cells = notebook.cells;
   for (let i = 0; i < cells.length; ++i) {
     const prev_cell = i > 0 ? cells.get(i - 1) : null;
