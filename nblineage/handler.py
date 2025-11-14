@@ -1,10 +1,10 @@
-from jupyter_server.base.handlers import APIHandler
+from jupyterlab_server.handlers import JupyterHandler
 from tornado import web
 from uuid import uuid1
 from .tracking_server import TrackingServer
 import itertools
 
-class UUIDv1Handler(APIHandler):
+class UUIDv1Handler(JupyterHandler):
     def initialize(self):
         pass
 
@@ -14,7 +14,7 @@ class UUIDv1Handler(APIHandler):
         uuids = [str(uuid1()) for x in itertools.repeat(None, count)]
         self.finish(dict(uuid=uuids))
 
-class ServerSignatureHandler(APIHandler):
+class ServerSignatureHandler(JupyterHandler):
     def initialize(self, nb_app):
         self.tracking_server = TrackingServer()
         self.nb_app = nb_app
@@ -23,6 +23,6 @@ class ServerSignatureHandler(APIHandler):
     def get(self):
         response = dict(
             signature_id=self.tracking_server.server_signature,
-            notebook_dir=self.nb_app.notebook_dir
+            notebook_dir=self.nb_app.root_dir
         )
         self.finish(response)

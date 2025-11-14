@@ -10,7 +10,7 @@ define([
         if (count == 0) {
             return [];
         }
-        var url = Jupyter.notebook.base_url + 'uuid/v1/' + count
+        var url = Jupyter.notebook.base_url + 'nblineage/uuid/v1/' + count
         var uuids;
         $.ajax({
             url: url,

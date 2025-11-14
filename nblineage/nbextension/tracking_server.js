@@ -93,7 +93,7 @@ define([
     }
 
     function init_server_env() {
-        var url = Jupyter.notebook.base_url + 'lc/server_signature'
+        var url = Jupyter.notebook.base_url + 'nblineage/lc/server_signature'
         var res;
         $.ajax({
             url: url,
