@@ -1,4 +1,4 @@
-FROM quay.io/jupyter/scipy-notebook:notebook-7.4.5
+FROM quay.io/jupyter/scipy-notebook:notebook-7.5.0
 
 # nblineage test container
 
