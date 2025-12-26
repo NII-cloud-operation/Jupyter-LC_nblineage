@@ -26,8 +26,7 @@ RUN echo "c.MultiKernelManager.kernel_manager_class = 'lc_wrapper.LCWrapperKerne
 RUN pip --no-cache-dir install jupyter_nbextensions_configurator \
     git+https://github.com/NII-cloud-operation/Jupyter-LC_wrapper \
     git+https://github.com/NII-cloud-operation/Jupyter-multi_outputs \
-    git+https://github.com/NII-cloud-operation/Jupyter-LC_notebook_diff.git \
-    git+https://github.com/NII-cloud-operation/sidestickies.git
+    git+https://github.com/NII-cloud-operation/Jupyter-LC_notebook_diff.git
 
 ### Install nblineage
 COPY . /tmp/nblineage
